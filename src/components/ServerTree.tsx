@@ -19,13 +19,18 @@ class ServerTree extends React.Component<Properties, State> {
 
         this.showAddServerDialog = this.showAddServerDialog.bind(this);
         this.addServerDialogClosed = this.addServerDialogClosed.bind(this);
+        this.addServerDialogCommitted = this.addServerDialogCommitted.bind(this);
     }
 
     private showAddServerDialog() {
         this.setState({ showAddServer: true });
     }
 
-    private addServerDialogClosed(commit: boolean) {
+    private addServerDialogClosed() {
+        this.setState({ showAddServer: false });
+    }
+
+    private addServerDialogCommitted(address: string, username: string, password: string) {
         this.setState({ showAddServer: false });
     }
 
@@ -33,7 +38,8 @@ class ServerTree extends React.Component<Properties, State> {
         return (
             <div className="server-tree">
                 <button onClick={this.showAddServerDialog} className="button">Add a server</button>
-                <AddServerDialog show={this.state.showAddServer} onClose={this.addServerDialogClosed} />
+                <AddServerDialog show={this.state.showAddServer} onClose={this.addServerDialogClosed} 
+                                 onCommit={this.addServerDialogCommitted} />
             </div>
         );
     }
