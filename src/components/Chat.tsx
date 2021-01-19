@@ -1,12 +1,12 @@
 import './Chat.css';
-import { MessageList } from './MessageList';
-import { EntryBox } from './EntryBox';
+import MessageList from './MessageList';
+import EntryBox from './EntryBox';
 
 interface Properties {
 
 }
 
-export function Chat(props: Properties) {
+function Chat(props: Properties) {
     return (
         <div className="Chat">
             <MessageList />
@@ -14,3 +14,5 @@ export function Chat(props: Properties) {
         </div>
     );
 }
+
+export default Chat;

@@ -1,13 +1,16 @@
 import './EntryBox.css';
+import './util.css';
 
 interface Properties {
 
 }
 
-export function EntryBox(props: Properties) {
+function EntryBox(props: Properties) {
     return (
         <div className="entrybox-container">
-            <input type="text" className="entrybox" placeholder="Type a message..." />
+            <input type="text" className="entrybox textbox" placeholder="Type a message..." />
         </div>
     );
 }
+
+export default EntryBox;

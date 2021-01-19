@@ -4,7 +4,7 @@ interface Properties {
     channel: String
 }
 
-export function Header(props: Properties) {
+function Header(props: Properties) {
     return (
         <div className="App-text">
             {props.channel}
@@ -12,3 +12,5 @@ export function Header(props: Properties) {
         </div>
     );
 }
+
+export default Header;

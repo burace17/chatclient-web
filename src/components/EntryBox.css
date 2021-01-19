@@ -6,9 +6,4 @@
 
 .entrybox {
     flex: 2 1 auto;
-    background-color: transparent;
-    color: white;
-    height: 23px;
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-        monospace;
 }

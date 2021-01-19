@@ -1,0 +1,57 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(37, 37, 37);
+}
+
+.content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid #fff;
+    background: rgb(37, 37, 37);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 4px;
+    outline: none;
+    padding: 20px;
+    color: white;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.close-header {
+    margin: 0;
+}
+
+.close {
+    padding-left: 30px;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+.server-form {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.server-form-row {
+    padding: .5em .5em .5em 0;
+}
+
+.server-form-row > button {
+    width: 100%;
+}
