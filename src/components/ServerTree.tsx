@@ -3,7 +3,8 @@ import './util.css';
 import AddServerDialog from './AddServerDialog';
 import React from 'react';
 interface Properties {
-
+    onServerAdded: (addr: string, username: string, password: string) => void;
+    connectedServers: Array<[string, string]>;
 }
 
 interface State {
@@ -32,12 +33,20 @@ class ServerTree extends React.Component<Properties, State> {
 
     private addServerDialogCommitted(address: string, username: string, password: string) {
         this.setState({ showAddServer: false });
+        this.props.onServerAdded("wss://" + address + ":1337", username, password);
     }
 
     render() {
+        const servers = this.props.connectedServers.map(s => {
+            return <li key={s[0]}>{s[1]}</li>;
+        });
+
         return (
             <div className="server-tree">
                 <button onClick={this.showAddServerDialog} className="button">Add a server</button>
+                <ul>
+                    {servers}
+                </ul>
                 <AddServerDialog show={this.state.showAddServer} onClose={this.addServerDialogClosed} 
                                  onCommit={this.addServerDialogCommitted} />
             </div>

@@ -2,3 +2,13 @@
     border-right: thin solid #ffffff;
     padding-right: 5px;
 }
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.channel-tree-item {
+    padding-top: 5px;
+    padding-left: 20px;
+}
