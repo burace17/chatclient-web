@@ -5,13 +5,6 @@ import ServerTree from './components/ServerTree';
 import Chat from './components/Chat';
 import UserList from './components/UserList';
 import Client from './net/client';
-//import { timeStamp } from 'console';
-
-// basically will have a map that maps server uri's or names to this client object
-// for the server tree, transform the map into a tree structure with just the info needed
-// header just needs the current channel
-// chat just needs the messages for the current channel.
-//const test = new Client("wss://0.0.0.0:1337", "test", "mypassword");
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K>  {
     let arr = [];
@@ -21,30 +14,49 @@ function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K>  {
     return arr;
 }
 
-function getNamesAndAddresses(clients: Map<string, Client>): Array<[string, string]> {
+export interface ServerInfo {
+  address: string;
+  name: string;
+  channelNames: Array<string>;
+}
+
+function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
   return map(clients.entries(), kv => {
     const name = kv[1].getServerName();
-    return [kv[0], name];
+    const channels = kv[1].getChannels();
+    return {
+      address: kv[0],
+      name: name,
+      channelNames: channels
+    };
   });
 }
 
 interface Properties {}
 
 interface State {
-  clients: Map<string, Client>;
-  serverNames: Array<[string, string]> // address, name
+  serverNames: Array<ServerInfo>
+  selectedChannel: [string, string] // address, channel name
 }
 
 class App extends React.Component<Properties, State> {
+  private clients: Map<string, Client>;
   constructor(props: Properties) {
     super(props);
+    this.clients = new Map<string, Client>();
     this.state = {
-      clients: new Map<string, Client>(),
-      serverNames: []
+      serverNames: [],
+      selectedChannel: ["", "Not in a channel"]
     }
     this.onServerAdded = this.onServerAdded.bind(this);
     this.onMessageReceived = this.onMessageReceived.bind(this);
     this.onServerNameChanged = this.onServerNameChanged.bind(this);
+    this.onSelectedChannelChanged = this.onSelectedChannelChanged.bind(this);
+  }
+
+  private onSelectedChannelChanged(newChannel: [string, string]) {
+    if (this.state.selectedChannel[0] !== newChannel[0] || this.state.selectedChannel[1] !== newChannel[1])
+      this.setState({ selectedChannel: newChannel });
   }
 
   private onMessageReceived(address: string, evt: MessageEvent<any>) {
@@ -52,16 +64,12 @@ class App extends React.Component<Properties, State> {
   }
 
   private onServerNameChanged() {
-    this.setState(state => {
-      return {
-        serverNames: getNamesAndAddresses(state.clients)
-      }
-    });
+    this.setState({ serverNames: getNamesAndAddresses(this.clients) });
   }
 
   private onServerAdded(address: string, username: string, password: string) {
-    if (this.state.clients.has(address))
-      return; // todo: show a notification 
+    if (this.clients.has(address))
+      return; // todo: show a notification
 
     const props = {
       address: address,
@@ -73,22 +81,17 @@ class App extends React.Component<Properties, State> {
       onServerNameChanged: this.onServerNameChanged
     };
 
-    this.setState(state => {
-      const newState = new Map(state.clients);
-      newState.set(address, new Client(props));
-      return { 
-        clients: newState,
-        serverNames: getNamesAndAddresses(newState)
-      };
-    });
+    this.clients.set(address, new Client(props));
+    this.setState({ serverNames: getNamesAndAddresses(this.clients) });
   }
 
   render() {
     return (
       <div className="App">
-        <Header channel="Not in a channel"/>
+        <Header channel={this.state.selectedChannel[1]} />
         <div className="App-container">
-          <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames} />
+          <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames} 
+                      selectedChannel={this.state.selectedChannel} onSelectedChannelChanged={this.onSelectedChannelChanged} />
           <Chat />
           <UserList />
         </div>

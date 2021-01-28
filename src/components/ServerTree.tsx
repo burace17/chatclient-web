@@ -1,10 +1,13 @@
 import './ServerTree.css';
 import './util.css';
 import AddServerDialog from './AddServerDialog';
+import { ServerInfo } from '../App';
 import React from 'react';
 interface Properties {
     onServerAdded: (addr: string, username: string, password: string) => void;
-    connectedServers: Array<[string, string]>;
+    connectedServers: Array<ServerInfo>;
+    selectedChannel: [string, string];
+    onSelectedChannelChanged: (newChannel: [string, string]) => void;
 }
 
 interface State {
@@ -21,6 +24,7 @@ class ServerTree extends React.Component<Properties, State> {
         this.showAddServerDialog = this.showAddServerDialog.bind(this);
         this.addServerDialogClosed = this.addServerDialogClosed.bind(this);
         this.addServerDialogCommitted = this.addServerDialogCommitted.bind(this);
+        this.createChannelNameButton = this.createChannelNameButton.bind(this);
     }
 
     private showAddServerDialog() {
@@ -36,9 +40,29 @@ class ServerTree extends React.Component<Properties, State> {
         this.props.onServerAdded("wss://" + address + ":1337", username, password);
     }
 
+    private createChannelNameButton(address: string, name: string) {
+        const selected = address === this.props.selectedChannel[0] && name === this.props.selectedChannel[1];
+        const className = selected ? "channel-button-selected" : "channel-button";
+
+        return (
+            <li key={name}>
+                <button className={className} onClick={() => { this.props.onSelectedChannelChanged([address, name])}}>
+                    {name}
+                </button>
+            </li> 
+        );
+    }
+
     render() {
-        const servers = this.props.connectedServers.map(s => {
-            return <li key={s[0]}>{s[1]}</li>;
+        const servers = this.props.connectedServers.map(info => {
+            return (
+                <li key={info.address}>
+                    {info.name}
+                    <ul>
+                        {info.channelNames.map(name => this.createChannelNameButton(info.address, name))}
+                    </ul>
+                </li>
+            );
         });
 
         return (

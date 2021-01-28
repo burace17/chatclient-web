@@ -13,10 +13,12 @@ class Client {
     private readonly ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
+    private channels: Array<string>;
 
     constructor(props: ClientProperties) {
         this.props = props;
         this.serverName = props.address;
+        this.channels = [];
         this.socketOnOpen = this.socketOnOpen.bind(this);
         this.socketOnClose = this.socketOnClose.bind(this);
         this.socketOnMessage = this.socketOnMessage.bind(this);
@@ -45,8 +47,9 @@ class Client {
 
     private socketOnMessage(evt: MessageEvent<any>) {
         const message = JSON.parse(evt.data);
-        if (message.res === 200) {
+        if (message.cmd === "WELCOME") {
             this.serverName = message.name;
+            this.channels = message.channels;
             this.props.onServerNameChanged();
         }
 
@@ -59,6 +62,10 @@ class Client {
 
     getServerName() {
         return this.serverName;
+    }
+
+    getChannels() {
+        return this.channels;
     }
 }
 
