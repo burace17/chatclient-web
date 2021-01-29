@@ -74,7 +74,7 @@ class App extends React.Component<Properties, State> {
   }
 
   private sendCommand(text: string) {
-    const [currentAddr, currentChannel] = this.state.selectedChannel;
+    const currentAddr = this.state.selectedChannel[0];
     if (!currentAddr) {
       this.writeToCurrentChat("Need to be connected to a server to send a command");
       return;

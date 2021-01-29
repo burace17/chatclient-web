@@ -27,7 +27,7 @@ class MessageList extends React.Component<Properties> {
 
     render() {
         const msgs = this.props.messages.map(msg => {
-            return <Message id={msg.id} time={msg.time} text={msg.text} nickname={msg.nickname} />
+            return <Message key={msg.id} id={msg.id} time={msg.time} text={msg.text} nickname={msg.nickname} />
         });
 
         return (

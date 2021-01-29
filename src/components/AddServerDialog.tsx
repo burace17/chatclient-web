@@ -52,8 +52,8 @@ class AddServerDialog extends React.Component<Properties, State> {
                     <h4 className="close-header">Add a server</h4>
                     <a onClick={discard}>
                         <svg viewBox="0 0 1 1" height="20" width="20" opacity="0.3" className="close">
-                            <line x1="0" y1="1" x2="1" y2="0" stroke="white" stroke-width="0.1" />
-                            <line x1="0" y1="0" x2="1" y2="1" stroke="white" stroke-width="0.1" />
+                            <line x1="0" y1="1" x2="1" y2="0" stroke="white" strokeWidth="0.1" />
+                            <line x1="0" y1="0" x2="1" y2="1" stroke="white" strokeWidth="0.1" />
                         </svg>
                     </a>
                 </div>
