@@ -56,22 +56,67 @@ class App extends React.Component<Properties, State> {
     this.onServerNameChanged = this.onServerNameChanged.bind(this);
     this.onSelectedChannelChanged = this.onSelectedChannelChanged.bind(this);
     this.onSendMessage = this.onSendMessage.bind(this);
+    this.sendCommand = this.sendCommand.bind(this);
+    this.writeToCurrentChat = this.writeToCurrentChat.bind(this);
+  }
+
+  private writeToCurrentChat(text: string) {
+    this.setState(state => {
+      let newState = Array.from(state.currentChannelMessages);
+      newState.push({
+        id: Math.random(),
+        time: Date.now() / 1000,
+        text: text
+      });
+
+      return { currentChannelMessages: newState };
+    });
+  }
+
+  private sendCommand(text: string) {
+    const [currentAddr, currentChannel] = this.state.selectedChannel;
+    if (!currentAddr) {
+      this.writeToCurrentChat("Need to be connected to a server to send a command");
+      return;
+    }
+
+    const client = this.clients.get(currentAddr);
+    const words = text.split(" ");
+    if (words[0] === "/join" && words.length >= 2) {
+      const channel = words[1];
+      client?.joinChannel(channel);
+    }
+    else
+      this.writeToCurrentChat("Invalid command: " + text);
   }
 
   private onSendMessage(text: string) {
     const [addr, channelName] = this.state.selectedChannel;
-    if (addr !== undefined && channelName !== undefined) {
-      this.clients.get(addr)?.sendMessage(channelName, text);
+    if (addr) {
+      if (text.startsWith("/"))
+        this.sendCommand(text);
+      else if (channelName)
+        this.clients.get(addr)?.sendMessage(channelName, text);
+      else
+        this.writeToCurrentChat("You need to join or select a channel to send a message");
     }
   }
 
-  private onSelectedChannelChanged(newChannel: [string, string]) {
-    if (this.state.selectedChannel[0] !== newChannel[0] || this.state.selectedChannel[1] !== newChannel[1])
-      this.setState({ selectedChannel: newChannel });
+  private onSelectedChannelChanged(newData: [string, string]) {
+    const [currentAddr, currentChannel] = this.state.selectedChannel;
+    const [newAddr, newChannel] = newData;
+    if (currentAddr !== newAddr || currentChannel !== newChannel) {
+      const messages = this.clients.get(newAddr)?.getMessages(newChannel) ?? [];
+      this.setState({ 
+        selectedChannel: newData,
+        currentChannelMessages: messages
+      });
+    }
   }
 
   private onMessageReceived(addr: string, channel: string) {
-    if (addr === this.state.selectedChannel[0] && channel === this.state.selectedChannel[1]) {
+    const [currentAddr, currentChannel] = this.state.selectedChannel;
+    if (addr === currentAddr && channel === currentChannel) {
       const messages = this.clients.get(addr)?.getMessages(channel);
       if (messages)
         this.setState({ currentChannelMessages: messages });
@@ -97,7 +142,10 @@ class App extends React.Component<Properties, State> {
     };
 
     this.clients.set(address, new Client(props));
-    this.setState({ serverNames: getNamesAndAddresses(this.clients) });
+    this.setState({ 
+      serverNames: getNamesAndAddresses(this.clients),
+      selectedChannel: [address, undefined]
+    });
   }
 
   render() {

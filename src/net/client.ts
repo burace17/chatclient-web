@@ -2,7 +2,7 @@ export interface ClientMessage {
     id: number;
     time: number;
     text: string;
-    nickname: string;
+    nickname?: string;
 }
 
 interface ClientProperties {
@@ -97,6 +97,15 @@ class Client {
             "cmd" : "MSG",
             "channel" : channel,
             "content" : text
+        };
+
+        this.ws.send(JSON.stringify(packet));
+    }
+
+    joinChannel(channel: string) {
+        const packet = {
+            "cmd" : "JOIN",
+            "name" : channel
         };
 
         this.ws.send(JSON.stringify(packet));
