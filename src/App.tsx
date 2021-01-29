@@ -5,6 +5,7 @@ import ServerTree from './components/ServerTree';
 import Chat from './components/Chat';
 import UserList from './components/UserList';
 import Client from './net/client';
+import { ClientMessage } from './net/client';
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K>  {
     let arr = [];
@@ -36,7 +37,8 @@ interface Properties {}
 
 interface State {
   serverNames: Array<ServerInfo>
-  selectedChannel: [string, string] // address, channel name
+  selectedChannel: [string?, string?] // address, channel name
+  currentChannelMessages: Array<ClientMessage>
 }
 
 class App extends React.Component<Properties, State> {
@@ -46,12 +48,21 @@ class App extends React.Component<Properties, State> {
     this.clients = new Map<string, Client>();
     this.state = {
       serverNames: [],
-      selectedChannel: ["", "Not in a channel"]
+      selectedChannel: [undefined, undefined],
+      currentChannelMessages: []
     }
     this.onServerAdded = this.onServerAdded.bind(this);
     this.onMessageReceived = this.onMessageReceived.bind(this);
     this.onServerNameChanged = this.onServerNameChanged.bind(this);
     this.onSelectedChannelChanged = this.onSelectedChannelChanged.bind(this);
+    this.onSendMessage = this.onSendMessage.bind(this);
+  }
+
+  private onSendMessage(text: string) {
+    const [addr, channelName] = this.state.selectedChannel;
+    if (addr !== undefined && channelName !== undefined) {
+      this.clients.get(addr)?.sendMessage(channelName, text);
+    }
   }
 
   private onSelectedChannelChanged(newChannel: [string, string]) {
@@ -59,8 +70,12 @@ class App extends React.Component<Properties, State> {
       this.setState({ selectedChannel: newChannel });
   }
 
-  private onMessageReceived(address: string, evt: MessageEvent<any>) {
-
+  private onMessageReceived(addr: string, channel: string) {
+    if (addr === this.state.selectedChannel[0] && channel === this.state.selectedChannel[1]) {
+      const messages = this.clients.get(addr)?.getMessages(channel);
+      if (messages)
+        this.setState({ currentChannelMessages: messages });
+    }
   }
 
   private onServerNameChanged() {
@@ -88,11 +103,11 @@ class App extends React.Component<Properties, State> {
   render() {
     return (
       <div className="App">
-        <Header channel={this.state.selectedChannel[1]} />
+        <Header channel={this.state.selectedChannel[1] ?? ""} />
         <div className="App-container">
           <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames} 
                       selectedChannel={this.state.selectedChannel} onSelectedChannelChanged={this.onSelectedChannelChanged} />
-          <Chat />
+          <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage} />
           <UserList />
         </div>
       </div>

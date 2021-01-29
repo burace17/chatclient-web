@@ -1,4 +1,9 @@
-type MessageCallback = (addr: string, e: MessageEvent<any>) => void;
+export interface ClientMessage {
+    id: number;
+    time: number;
+    text: string;
+    nickname: string;
+}
 
 interface ClientProperties {
     readonly address: string;
@@ -6,19 +11,22 @@ interface ClientProperties {
     readonly password: string;
     readonly onOpen: (addr: string) => void;
     readonly onClose: (addr: string) => void;
-    readonly onMessage: MessageCallback;
+    readonly onMessage: (addr: string, channel: string) => void;
     readonly onServerNameChanged: () => void;
 }
+
 class Client {
     private readonly ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
     private channels: Array<string>;
+    private channelMessages: Map<string, Array<ClientMessage>>;
 
     constructor(props: ClientProperties) {
         this.props = props;
         this.serverName = props.address;
         this.channels = [];
+        this.channelMessages = new Map<string, Array<ClientMessage>>();
         this.socketOnOpen = this.socketOnOpen.bind(this);
         this.socketOnClose = this.socketOnClose.bind(this);
         this.socketOnMessage = this.socketOnMessage.bind(this);
@@ -50,10 +58,22 @@ class Client {
         if (message.cmd === "WELCOME") {
             this.serverName = message.name;
             this.channels = message.channels;
+            for (const channel of this.channels) {
+                this.channelMessages.set(channel, []);
+            }
+
             this.props.onServerNameChanged();
         }
-
-        this.props.onMessage(this.props.address, evt);
+        else if (message.cmd === "MSG") {
+            let msgs = this.channelMessages.get(message.channel);
+            msgs?.push({
+                id: message.message_id,
+                text: message.content,
+                time: message.time,
+                nickname: message.user.nickname
+            });
+            this.props.onMessage(this.props.address, message.channel);
+        }
     }
 
     getProps() {
@@ -66,6 +86,20 @@ class Client {
 
     getChannels() {
         return this.channels;
+    }
+
+    getMessages(channel: string) {
+        return this.channelMessages.get(channel);
+    }
+
+    sendMessage(channel: string, text: string) {
+        const packet = {
+            "cmd" : "MSG",
+            "channel" : channel,
+            "content" : text
+        };
+
+        this.ws.send(JSON.stringify(packet));
     }
 }
 

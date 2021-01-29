@@ -6,7 +6,7 @@ import React from 'react';
 interface Properties {
     onServerAdded: (addr: string, username: string, password: string) => void;
     connectedServers: Array<ServerInfo>;
-    selectedChannel: [string, string];
+    selectedChannel: [string?, string?];
     onSelectedChannelChanged: (newChannel: [string, string]) => void;
 }
 
