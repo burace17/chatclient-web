@@ -3,13 +3,13 @@
     background-color: transparent;
     color: white;
     height: 23px;
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
     border: 1px solid white;
 }
 
 .button {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
     background-color: transparent;
     border: 1px solid white;

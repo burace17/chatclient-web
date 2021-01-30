@@ -53,7 +53,7 @@ class Client {
     private socketOnClose = (e: CloseEvent) => {
         console.log("websocket closed - clean: " + e.wasClean + ", code: " + e.code + ", reason: " + e.reason);
 
-        // try to reconnect if it didn't close cleanly.
+        // try to reconnect if it didn"t close cleanly.
         if (!e.wasClean) {
             setTimeout(() => this.ws = this.connect(), 5000);
         }

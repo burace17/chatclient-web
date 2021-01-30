@@ -1,8 +1,8 @@
-import './ServerTree.css';
-import './util.css';
-import AddServerDialog from './AddServerDialog';
-import { ServerInfo, Channel } from '../App';
-import React from 'react';
+import "./ServerTree.css";
+import "./util.css";
+import AddServerDialog from "./AddServerDialog";
+import { ServerInfo, Channel } from "../App";
+import React from "react";
 interface Properties {
     onServerAdded: (addr: string, username: string, password: string) => void;
     connectedServers: Array<ServerInfo>;

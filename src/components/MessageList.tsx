@@ -1,7 +1,7 @@
-import './MessageList.css';
-import Message from './Message';
-import { ClientMessage } from '../net/client';
-import React from 'react';
+import "./MessageList.css";
+import Message from "./Message";
+import { ClientMessage } from "../net/client";
+import React from "react";
 
 interface Properties {
     messages: Array<ClientMessage>
@@ -14,7 +14,7 @@ class MessageList extends React.Component<Properties> {
         this.messagesEndRef = React.createRef();
     }
     scrollToBottom() {
-        this.messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        this.messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
 
     componentDidUpdate() {

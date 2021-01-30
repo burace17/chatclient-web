@@ -1,5 +1,5 @@
-import './EntryBox.css';
-import './util.css';
+import "./EntryBox.css";
+import "./util.css";
 
 interface Properties {
     onSendMessage: (text: string) => void

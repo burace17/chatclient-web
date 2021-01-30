@@ -1,7 +1,7 @@
-import './Chat.css';
-import MessageList from './MessageList';
-import EntryBox from './EntryBox';
-import { ClientMessage } from '../net/client';
+import "./Chat.css";
+import MessageList from "./MessageList";
+import EntryBox from "./EntryBox";
+import { ClientMessage } from "../net/client";
 
 interface Properties {
     messages: Array<ClientMessage>

@@ -1,7 +1,7 @@
-import './util.css';
-import './AddServerDialog.css';
-import Modal from 'react-modal';
-import React from 'react';
+import "./util.css";
+import "./AddServerDialog.css";
+import Modal from "react-modal";
+import React from "react";
 
 interface Properties {
     show: boolean;

@@ -1,11 +1,11 @@
-import React from 'react';
-import './App.css';
-import Header from './components/Header';
-import ServerTree from './components/ServerTree';
-import Chat from './components/Chat';
-import UserList from './components/UserList';
-import Client from './net/client';
-import { ClientMessage } from './net/client';
+import React from "react";
+import "./App.css";
+import Header from "./components/Header";
+import ServerTree from "./components/ServerTree";
+import Chat from "./components/Chat";
+import UserList from "./components/UserList";
+import Client from "./net/client";
+import { ClientMessage } from "./net/client";
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
     let arr = [];
@@ -63,6 +63,10 @@ class App extends React.Component<Properties, State> {
             hideServerTree: false,
             canSendMessage: false
         }
+    }
+
+    componentDidMount() {
+        this.readStoredCredentials();
     }
 
     private writeToCurrentChat = (text: string) => {
@@ -188,6 +192,9 @@ class App extends React.Component<Properties, State> {
                 hideServerTree: !state.hideServerTree
             };
         });
+    }
+
+    private readStoredCredentials = () => {
     }
 
     render() {
