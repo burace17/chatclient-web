@@ -1,6 +1,7 @@
 .server-tree {
-    border-right: thin solid #ffffff;
+    border-right: thin solid white;
     padding-right: 5px;
+    padding-top: 10px;
 }
 
 ul {

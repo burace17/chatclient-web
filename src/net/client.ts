@@ -12,7 +12,7 @@ interface ClientProperties {
     readonly onOpen: (addr: string) => void;
     readonly onClose: (addr: string) => void;
     readonly onMessage: (addr: string, channel: string) => void;
-    readonly onServerNameChanged: () => void;
+    readonly onWelcome: (addr: string, channels: Array<string>) => void;
 }
 
 class Client {
@@ -27,9 +27,6 @@ class Client {
         this.serverName = props.address;
         this.channels = [];
         this.channelMessages = new Map<string, Array<ClientMessage>>();
-        this.socketOnOpen = this.socketOnOpen.bind(this);
-        this.socketOnClose = this.socketOnClose.bind(this);
-        this.socketOnMessage = this.socketOnMessage.bind(this);
 
         this.ws = new WebSocket(props.address);
         this.ws.onopen = this.socketOnOpen;
@@ -37,7 +34,7 @@ class Client {
         this.ws.onmessage = this.socketOnMessage;
     }
 
-    private socketOnOpen(_: Event) {
+    private socketOnOpen = (_: Event) => {
         const ident = {
             "cmd" : "IDENT",
             "username" : this.props.username,
@@ -48,12 +45,12 @@ class Client {
         this.props.onOpen(this.props.address);
     }
 
-    private socketOnClose(_: Event) {
+    private socketOnClose = (_: Event) => {
         // todo: try to reconnect? need to set a flag or something to know if the close was requested
         this.props.onClose(this.props.address);
     }
 
-    private socketOnMessage(evt: MessageEvent<any>) {
+    private socketOnMessage = (evt: MessageEvent<any>) => {
         const message = JSON.parse(evt.data);
         if (message.cmd === "WELCOME") {
             this.serverName = message.name;
@@ -62,7 +59,7 @@ class Client {
                 this.channelMessages.set(channel, []);
             }
 
-            this.props.onServerNameChanged();
+            this.props.onWelcome(this.props.address, this.channels);
         }
         else if (message.cmd === "MSG") {
             let msgs = this.channelMessages.get(message.channel);

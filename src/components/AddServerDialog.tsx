@@ -23,21 +23,17 @@ class AddServerDialog extends React.Component<Properties, State> {
             username: "",
             password: ""
         }
-
-        this.onServerAddressChanged = this.onServerAddressChanged.bind(this);
-        this.onUsernameChanged = this.onUsernameChanged.bind(this);
-        this.onPasswordChanged = this.onPasswordChanged.bind(this);
     }
 
-    private onServerAddressChanged(e: React.ChangeEvent<HTMLInputElement>) {
+    private onServerAddressChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ serverAddress: e.target.value });
     }
 
-    private onUsernameChanged(e: React.ChangeEvent<HTMLInputElement>) {
+    private onUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ username: e.target.value });
     }
 
-    private onPasswordChanged(e: React.ChangeEvent<HTMLInputElement>) {
+    private onPasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ password: e.target.value });
     }
 

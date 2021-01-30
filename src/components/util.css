@@ -20,3 +20,7 @@
 .button:hover {
     background-color: grey;
 }
+
+.hidden {
+    display: none;
+}
