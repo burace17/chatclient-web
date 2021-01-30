@@ -13,7 +13,8 @@ ul {
 }
 
 .channel-button {
-    background-color: transparent;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+        monospace;
     color: white;
     border: 0;
     height: 100%;
@@ -21,11 +22,10 @@ ul {
     padding: 0;
 }
 
+.channel-button-unselected {
+    background-color: transparent;
+}
+
 .channel-button-selected {
     background-color: blue;
-    color: white;
-    border: 0;
-    height: 100%;
-    width: 100%;
-    padding: 0;
 }

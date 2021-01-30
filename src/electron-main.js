@@ -22,6 +22,8 @@ function createWindow () {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
+
+  mainWindow.maximize();
 }
 
 // This method will be called when Electron has finished

@@ -5,10 +5,18 @@
     height: 23px;
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
         monospace;
+    border: 1px solid white;
 }
 
 .button {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+        monospace;
     background-color: transparent;
+    border: 1px solid white;
     color: white;
     height: 25px;
+}
+
+.button:hover {
+    background-color: grey;
 }

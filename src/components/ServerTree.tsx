@@ -42,7 +42,7 @@ class ServerTree extends React.Component<Properties, State> {
 
     private createChannelNameButton(address: string, name: string) {
         const selected = address === this.props.selectedChannel[0] && name === this.props.selectedChannel[1];
-        const className = selected ? "channel-button-selected" : "channel-button";
+        const className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
 
         return (
             <li key={name}>

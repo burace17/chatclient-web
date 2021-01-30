@@ -3,4 +3,15 @@
     list-style-type: none;
     overflow-y: auto;
     height: 88vh;
+    scrollbar-color: white transparent;
+    scrollbar-width: thin;
+}
+
+.message-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.message-list::-webkit-scrollbar-thumb {
+    background-color: white;
+    border-radius: 10px;
 }

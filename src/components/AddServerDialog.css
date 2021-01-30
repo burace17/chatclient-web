@@ -34,8 +34,10 @@
     margin: 0;
 }
 
-.close {
-    padding-left: 30px;
+.close-button {
+    background-color: transparent;
+    border: 0;
+    margin-left: 30px;
 }
 
 .close:hover {
