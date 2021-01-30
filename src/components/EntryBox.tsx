@@ -2,7 +2,8 @@ import './EntryBox.css';
 import './util.css';
 
 interface Properties {
-    onSendMessage: (text: string) => void;
+    onSendMessage: (text: string) => void
+    canSendMessage: boolean
 }
 
 function EntryBox(props: Properties) {
@@ -13,10 +14,12 @@ function EntryBox(props: Properties) {
             target.value = "";
         }
     };
+
+    const placeholder = props.canSendMessage ? "Type a message..." : "Not connected...";
     return (
         <div className="entrybox-container">
-            <input type="text" className="entrybox textbox" placeholder="Type a message..."
-                   onKeyPress={onKeyDown} />
+            <input type="text" className="entrybox textbox" placeholder={placeholder}
+                   onKeyPress={onKeyDown} disabled={!props.canSendMessage} />
         </div>
     );
 }

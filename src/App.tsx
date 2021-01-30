@@ -24,16 +24,19 @@ export interface ServerInfo {
     address: string;
     name: string;
     channelNames: Array<string>;
+    isConnected: boolean;
 }
 
 function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
     return map(clients.entries(), kv => {
-        const name = kv[1].getServerName();
-        const channels = kv[1].getChannels();
+        const [addr, client] = kv;
+        const name = client.getServerName();
+        const channels = client.getChannels();
         return {
-            address: kv[0],
+            address: addr,
             name: name,
-            channelNames: channels
+            channelNames: channels,
+            isConnected: client.isConnected()
         };
     });
 }
@@ -45,6 +48,7 @@ interface State {
     selectedChannel?: Channel
     currentChannelMessages: Array<ClientMessage>
     hideServerTree: boolean
+    canSendMessage: boolean
 }
 
 class App extends React.Component<Properties, State> {
@@ -56,7 +60,8 @@ class App extends React.Component<Properties, State> {
             serverNames: [],
             selectedChannel: undefined,
             currentChannelMessages: [],
-            hideServerTree: false
+            hideServerTree: false,
+            canSendMessage: false
         }
     }
 
@@ -106,11 +111,13 @@ class App extends React.Component<Properties, State> {
     private onSelectedChannelChanged = (newChannel: Channel) => {
         const currentChannel = this.state.selectedChannel;
         if (currentChannel?.address !== newChannel.address || currentChannel.name !== newChannel.name) {
-            const messages = this.clients.get(newChannel.address)?.getMessages(newChannel.name) ?? [];
+            const client = this.clients.get(newChannel.address); // should never be null hopefully?
+            const messages = client?.getMessages(newChannel.name) ?? [];
             document.title = newChannel.name + " - Chat Client";
             this.setState({
                 selectedChannel: newChannel,
-                currentChannelMessages: messages
+                currentChannelMessages: messages,
+                canSendMessage: client?.isConnected() ?? false
             });
         }
         else
@@ -127,15 +134,22 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWelcome = (addr: string, channels: Array<string>) => {
-        let channel: Channel | null = null;
-        if (channels.length > 0) {
+        // Select the first channel for this server if nothing is selected right now.
+        let channel: Channel | undefined = this.state.selectedChannel;
+        let canSendMessage = this.state.canSendMessage;
+        if (!channel && channels.length > 0) { // pick the first channel when we connect for the first time
             channel = { address: addr, name: channels[0] };
             document.title = channels[0] + " - Chat Client";
+            canSendMessage = true;
+        }
+        else if (channel && channel.address === addr) {
+            canSendMessage = true; // reconnected to the current server.
         }
 
         this.setState({ 
             serverNames: getNamesAndAddresses(this.clients),
-            selectedChannel: channel ?? this.state.selectedChannel
+            selectedChannel: channel,
+            canSendMessage
         });
     }
 
@@ -148,7 +162,7 @@ class App extends React.Component<Properties, State> {
             username: username,
             password: password,
             onOpen: (_: string) => { },
-            onClose: (a: string) => { },
+            onClose: this.onClose,
             onMessage: this.onMessageReceived,
             onWelcome: this.onWelcome
         };
@@ -156,6 +170,15 @@ class App extends React.Component<Properties, State> {
         this.clients.set(address, new Client(props));
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
+        });
+    }
+
+    private onClose = (address: string) => {
+        this.setState(state => {
+            return {
+                serverNames: getNamesAndAddresses(this.clients),
+                canSendMessage: state.selectedChannel?.address !== address
+            };
         });
     }
 
@@ -175,7 +198,8 @@ class App extends React.Component<Properties, State> {
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
                         selectedChannel={this.state.selectedChannel} onSelectedChannelChanged={this.onSelectedChannelChanged}
                         isHidden={this.state.hideServerTree} />
-                    <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage} />
+                    <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage}
+                        canSendMessage={this.state.canSendMessage} />
                     <UserList />
                 </div>
             </div>

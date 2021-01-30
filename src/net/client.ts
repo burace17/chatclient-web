@@ -16,7 +16,7 @@ interface ClientProperties {
 }
 
 class Client {
-    private readonly ws: WebSocket;
+    private ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
     private channels: Array<string>;
@@ -27,11 +27,16 @@ class Client {
         this.serverName = props.address;
         this.channels = [];
         this.channelMessages = new Map<string, Array<ClientMessage>>();
+        this.ws = this.connect();
+    }
 
-        this.ws = new WebSocket(props.address);
-        this.ws.onopen = this.socketOnOpen;
-        this.ws.onclose = this.socketOnClose;
-        this.ws.onmessage = this.socketOnMessage;
+    private connect = () => {
+        console.log("Attempting to connect to " + this.props.address);
+        let ws = new WebSocket(this.props.address);
+        ws.onopen = this.socketOnOpen;
+        ws.onclose = this.socketOnClose;
+        ws.onmessage = this.socketOnMessage;
+        return ws;
     }
 
     private socketOnOpen = (_: Event) => {
@@ -45,8 +50,14 @@ class Client {
         this.props.onOpen(this.props.address);
     }
 
-    private socketOnClose = (_: Event) => {
-        // todo: try to reconnect? need to set a flag or something to know if the close was requested
+    private socketOnClose = (e: CloseEvent) => {
+        console.log("websocket closed - clean: " + e.wasClean + ", code: " + e.code + ", reason: " + e.reason);
+
+        // try to reconnect if it didn't close cleanly.
+        if (!e.wasClean) {
+            setTimeout(() => this.ws = this.connect(), 5000);
+        }
+
         this.props.onClose(this.props.address);
     }
 
@@ -87,6 +98,10 @@ class Client {
 
     getMessages(channel: string) {
         return this.channelMessages.get(channel);
+    }
+
+    isConnected() {
+        return this.ws.readyState === 1;
     }
 
     sendMessage(channel: string, text: string) {

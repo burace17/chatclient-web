@@ -5,14 +5,15 @@ import { ClientMessage } from '../net/client';
 
 interface Properties {
     messages: Array<ClientMessage>
-    onSendMessage: (text: string) => void;
+    onSendMessage: (text: string) => void
+    canSendMessage: boolean
 }
 
 function Chat(props: Properties) {
     return (
         <div className="Chat">
             <MessageList messages={props.messages} />
-            <EntryBox onSendMessage={props.onSendMessage} />
+            <EntryBox onSendMessage={props.onSendMessage} canSendMessage={props.canSendMessage} />
         </div>
     );
 }
