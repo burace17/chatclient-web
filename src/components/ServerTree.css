@@ -20,7 +20,12 @@ ul {
     border: 0;
     height: 100%;
     width: 100%;
-    padding: 0;
+    padding-left: 20px;
+    text-align: left;
+}
+
+.channel-button:hover {
+    background-color: grey;
 }
 
 .channel-button-unselected {
@@ -28,7 +33,11 @@ ul {
 }
 
 .channel-button-selected {
-    background-color: blue;
+    background-color: #464746;
+}
+
+.server-name:hover {
+    background-color: grey;
 }
 
 .context-menu {
@@ -37,6 +46,6 @@ ul {
 }
 
 .context-menu-item:hover {
-    background-color: blue;
+    background-color: grey;
     cursor: pointer;
 }

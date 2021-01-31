@@ -65,7 +65,7 @@ class ServerTree extends React.Component<Properties, State> {
             return (
                 <li key={info.address}>
                     <ContextMenuTrigger id="server_context_trigger" collect={collect}>
-                        <div>{info.name}</div>
+                        <div className="server-name">{info.name}</div>
                     </ContextMenuTrigger>
                     <ul>
                         {info.channelNames.map(name => this.createChannelNameButton(info.address, name))}
