@@ -5,14 +5,16 @@ export interface ClientMessage {
     nickname?: string;
 }
 
-interface ClientProperties {
-    readonly address: string;
-    readonly username: string;
-    readonly password: string;
-    readonly onOpen: (addr: string) => void;
-    readonly onClose: (addr: string) => void;
-    readonly onMessage: (addr: string, channel: string) => void;
-    readonly onWelcome: (addr: string, channels: Array<string>) => void;
+export interface ClientProperties {
+    address: string;
+    username: string;
+    password: string;
+    onOpen: (addr: string) => void;
+    onClose: (addr: string) => void;
+    onMessage: (addr: string, channel: string) => void;
+    onWelcome: (addr: string, channels: Array<string>) => void;
+    onSelfJoin: (addr: string, channel: string) => void;
+    onJoin: (addr: string, channel: string, username: string) => void;
 }
 
 class Client {
@@ -41,9 +43,9 @@ class Client {
 
     private socketOnOpen = (_: Event) => {
         const ident = {
-            "cmd" : "IDENT",
-            "username" : this.props.username,
-            "password" : this.props.password
+            "cmd": "IDENT",
+            "username": this.props.username,
+            "password": this.props.password
         };
 
         this.ws.send(JSON.stringify(ident));
@@ -62,25 +64,54 @@ class Client {
     }
 
     private socketOnMessage = (evt: MessageEvent<any>) => {
+        // TODO: Need types here...
         const message = JSON.parse(evt.data);
-        if (message.cmd === "WELCOME") {
-            this.serverName = message.name;
-            this.channels = message.channels;
-            for (const channel of this.channels) {
-                this.channelMessages.set(channel, []);
-            }
-
-            this.props.onWelcome(this.props.address, this.channels);
+        switch (message.cmd) {
+            case "WELCOME":
+                this.handleWelcome(message);
+                break;
+            case "MSG": 
+                this.handleMsg(message);
+                break;
+            case "JOIN": 
+                this.handleJoin(message);
+                break;
+            default:
+                console.log("Got message with unknown command: " + evt.data);
+                break;
         }
-        else if (message.cmd === "MSG") {
-            let msgs = this.channelMessages.get(message.channel);
-            msgs?.push({
-                id: message.message_id,
-                text: message.content,
-                time: message.time,
-                nickname: message.user.nickname
-            });
-            this.props.onMessage(this.props.address, message.channel);
+    }
+
+    private handleWelcome = (message: any) => {
+        this.serverName = message.name;
+        this.channels = message.channels;
+        for (const channel of this.channels) {
+            this.channelMessages.set(channel, []);
+        }
+
+        this.props.onWelcome(this.props.address, this.channels);
+    }
+
+    private handleMsg = (message: any) => {
+        let msgs = this.channelMessages.get(message.channel);
+        msgs?.push({
+            id: message.message_id,
+            text: message.content,
+            time: message.time,
+            nickname: message.user.nickname
+        });
+        this.props.onMessage(this.props.address, message.channel);
+    }
+
+    private handleJoin = (message: any) => {
+        const user = message.user;
+        if (user.username === this.props.username) {
+            this.channels.push(message.channel);
+            this.channelMessages.set(message.channel, []);
+            this.props.onSelfJoin(this.props.address, message.channel);
+        }
+        else {
+            this.props.onJoin(this.props.address, message.channel, user.username);
         }
     }
 
@@ -106,9 +137,9 @@ class Client {
 
     sendMessage(channel: string, text: string) {
         const packet = {
-            "cmd" : "MSG",
-            "channel" : channel,
-            "content" : text
+            "cmd": "MSG",
+            "channel": channel,
+            "content": text
         };
 
         this.ws.send(JSON.stringify(packet));
@@ -116,8 +147,8 @@ class Client {
 
     joinChannel(channel: string) {
         const packet = {
-            "cmd" : "JOIN",
-            "name" : channel
+            "cmd": "JOIN",
+            "name": channel
         };
 
         this.ws.send(JSON.stringify(packet));

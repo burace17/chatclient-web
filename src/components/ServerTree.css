@@ -21,11 +21,15 @@ ul {
     height: 100%;
     width: 100%;
     padding-left: 20px;
+    padding-bottom: 8px;
+    padding-top: 8px;
     text-align: left;
 }
 
-.channel-button:hover {
-    background-color: grey;
+@media(hover: hover) and (pointer: fine) {
+    .channel-button:hover {
+        background-color: grey;
+    }
 }
 
 .channel-button-unselected {
@@ -36,8 +40,15 @@ ul {
     background-color: #464746;
 }
 
-.server-name:hover {
-    background-color: grey;
+.server-name {
+    padding-bottom: 8px;
+    padding-top: 8px;
+}
+
+@media(hover: hover) and (pointer: fine) {
+    .server-name:hover {
+        background-color: grey;
+    }
 }
 
 .context-menu {
@@ -48,4 +59,8 @@ ul {
 .context-menu-item:hover {
     background-color: grey;
     cursor: pointer;
+}
+
+.context-menu-item {
+    padding: 5px;
 }

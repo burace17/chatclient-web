@@ -5,7 +5,7 @@ import ServerTree from "./components/ServerTree";
 import Chat from "./components/Chat";
 import UserList from "./components/UserList";
 import Client from "./net/client";
-import { ClientMessage } from "./net/client";
+import { ClientMessage, ClientProperties } from "./net/client";
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
     let arr = [];
@@ -167,14 +167,16 @@ class App extends React.Component<Properties, State> {
         if (this.clients.has(address))
             return; // todo: show a notification
 
-        const props = {
+        const props: ClientProperties = {
             address: address,
             username: username,
             password: password,
-            onOpen: (_: string) => { },
+            onOpen: (_) => { }, // might be able to remove..
             onClose: this.onClose,
             onMessage: this.onMessageReceived,
-            onWelcome: this.onWelcome
+            onWelcome: this.onWelcome,
+            onJoin: (addr, channel, username) => {},
+            onSelfJoin: this.onSelfJoin,
         };
 
         if (persist && window.credentialManager) {
@@ -230,6 +232,13 @@ class App extends React.Component<Properties, State> {
                 selectedChannel: null
             });
         }
+    }
+
+    private onSelfJoin = (addr: string, channel: string) => {
+        this.setState({
+            serverNames: getNamesAndAddresses(this.clients),
+        });
+        this.onSelectedChannelChanged({address: addr, name: channel});
     }
 
     render() {

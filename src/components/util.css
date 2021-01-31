@@ -17,8 +17,10 @@
     height: 25px;
 }
 
-.button:hover {
-    background-color: grey;
+@media(hover: hover) and (pointer: fine) {
+    .button:hover {
+        background-color: grey;
+    }
 }
 
 .hidden {
