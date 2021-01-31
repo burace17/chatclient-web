@@ -122,6 +122,10 @@ class Client {
 
         this.ws.send(JSON.stringify(packet));
     }
+
+    quit() {
+        this.ws.close(1000);
+    }
 }
 
 export default Client;

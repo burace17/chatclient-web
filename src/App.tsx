@@ -15,6 +15,12 @@ function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
     return arr;
 }
 
+declare global {
+    interface Window {
+        credentialManager: any;
+    }
+}
+
 export interface Channel {
     address: string;
     name: string;
@@ -45,7 +51,7 @@ interface Properties { }
 
 interface State {
     serverNames: Array<ServerInfo>
-    selectedChannel?: Channel
+    selectedChannel: Channel | null
     currentChannelMessages: Array<ClientMessage>
     hideServerTree: boolean
     canSendMessage: boolean
@@ -58,15 +64,15 @@ class App extends React.Component<Properties, State> {
         this.clients = new Map<string, Client>();
         this.state = {
             serverNames: [],
-            selectedChannel: undefined,
+            selectedChannel: null,
             currentChannelMessages: [],
             hideServerTree: false,
             canSendMessage: false
         }
     }
 
-    componentDidMount() {
-        this.readStoredCredentials();
+    async componentDidMount() {
+        await this.getStoredServers();
     }
 
     private writeToCurrentChat = (text: string) => {
@@ -139,7 +145,7 @@ class App extends React.Component<Properties, State> {
 
     private onWelcome = (addr: string, channels: Array<string>) => {
         // Select the first channel for this server if nothing is selected right now.
-        let channel: Channel | undefined = this.state.selectedChannel;
+        let channel = this.state.selectedChannel;
         let canSendMessage = this.state.canSendMessage;
         if (!channel && channels.length > 0) { // pick the first channel when we connect for the first time
             channel = { address: addr, name: channels[0] };
@@ -157,7 +163,7 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onServerAdded = (address: string, username: string, password: string) => {
+    private onServerAdded = async (address: string, username: string, password: string, persist: boolean) => {
         if (this.clients.has(address))
             return; // todo: show a notification
 
@@ -170,6 +176,10 @@ class App extends React.Component<Properties, State> {
             onMessage: this.onMessageReceived,
             onWelcome: this.onWelcome
         };
+
+        if (persist && window.credentialManager) {
+            await window.credentialManager.storeServerInfo(address, username, password);
+        }
 
         this.clients.set(address, new Client(props));
         this.setState({
@@ -194,7 +204,32 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private readStoredCredentials = () => {
+    private getStoredServers = async () => {
+        if (window.credentialManager) {
+            // TODO: Make this type safe
+            const data = await window.credentialManager.getStoredServers();
+            for (const server of data) {
+                const password = await window.credentialManager.getStoredPassword(server.address, server.username);
+                this.onServerAdded(server.address, server.username, password, false);
+            }
+        }
+    }
+
+    private onServerRemoved = async (addr: string) => {
+        const client = this.clients.get(addr);
+        if (client) {
+            client.quit();
+            this.clients.delete(addr);
+
+            if (window.credentialManager) {
+                await window.credentialManager.removeServerInfo(addr, client.getProps().username);
+            }
+
+            this.setState({
+                serverNames: getNamesAndAddresses(this.clients),
+                selectedChannel: null
+            });
+        }
     }
 
     render() {
@@ -204,7 +239,7 @@ class App extends React.Component<Properties, State> {
                 <div className="App-container">
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
                         selectedChannel={this.state.selectedChannel} onSelectedChannelChanged={this.onSelectedChannelChanged}
-                        isHidden={this.state.hideServerTree} />
+                        isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
                     <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage}
                         canSendMessage={this.state.canSendMessage} />
                     <UserList />

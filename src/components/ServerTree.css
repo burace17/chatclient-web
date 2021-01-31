@@ -30,3 +30,13 @@ ul {
 .channel-button-selected {
     background-color: blue;
 }
+
+.context-menu {
+    background-color: black;
+    border: 1px solid white;
+}
+
+.context-menu-item:hover {
+    background-color: blue;
+    cursor: pointer;
+}
