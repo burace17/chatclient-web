@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Modal from "react-modal";
+import vhCheck from 'vh-check';
 
 Modal.setAppElement("#root");
 
@@ -13,6 +14,9 @@ ReactDOM.render(
     </React.StrictMode>,
     document.getElementById("root")
 );
+
+// This allows us to use vh consistently across desktop/mobile
+vhCheck();
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

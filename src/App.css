@@ -1,16 +1,18 @@
 .App {
-  text-align: left;
+    text-align: left;
 }
 
 #root {
-  height: 99vh;
+    height: calc(99vh - var(--vh-offset, 0px));
 }
+
 .App {
     display: flex;
     flex-direction: column;
     margin: 3px;
     height: 100%;
 }
+
 .App-container {
     flex: auto;
     display: flex;
