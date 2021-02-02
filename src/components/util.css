@@ -1,5 +1,4 @@
 .textbox {
-    flex: 2 1 auto;
     background-color: transparent;
     color: white;
     height: 23px;
@@ -25,4 +24,18 @@
 
 .hidden {
     display: none;
+}
+
+.scrollbar {
+    scrollbar-color: white transparent;
+    scrollbar-width: thin;
+}
+
+.scrollbar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+    background-color: white;
+    border-radius: 10px;
 }

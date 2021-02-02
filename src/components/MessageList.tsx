@@ -14,7 +14,7 @@ class MessageList extends React.Component<Properties> {
         this.messagesEndRef = React.createRef();
     }
     scrollToBottom() {
-        this.messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        this.messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
     }
 
     componentDidUpdate() {
@@ -31,7 +31,7 @@ class MessageList extends React.Component<Properties> {
         });
 
         return (
-            <div className="message-list">
+            <div className="message-list scrollbar">
                 <ul>
                     {msgs}
                 </ul>

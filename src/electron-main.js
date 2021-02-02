@@ -4,11 +4,6 @@ const path = require("path");
 const keytar = require("keytar");
 const fs = require("fs").promises;
 
-// Ignore certificate errors for development.
-if (process.env.NODE_ENV === "development") {
-    app.commandLine.appendSwitch("ignore-certificate-errors", "true");
-}
-
 function createWindow() {
     // Create the browser window.
     const mainWindow = new BrowserWindow({

@@ -1,7 +1,8 @@
-.server-tree {
+.server-container {
     border-right: thin solid white;
     padding-right: 5px;
     padding-top: 10px;
+    overflow-y: auto;
 }
 
 ul {

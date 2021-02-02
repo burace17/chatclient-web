@@ -21,14 +21,13 @@ class Client {
     private ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
-    private channels: Array<string>;
-    private channelMessages: Map<string, Array<ClientMessage>>;
+    private channels: Array<string> = [];
+    private channelMessages = new Map<string, Array<ClientMessage>>();
+    private hasQuit: boolean = false;
 
     constructor(props: ClientProperties) {
         this.props = props;
         this.serverName = props.address;
-        this.channels = [];
-        this.channelMessages = new Map<string, Array<ClientMessage>>();
         this.ws = this.connect();
     }
 
@@ -57,7 +56,10 @@ class Client {
 
         // try to reconnect if it didn"t close cleanly.
         if (!e.wasClean) {
-            setTimeout(() => this.ws = this.connect(), 5000);
+            setTimeout(() => {
+                if (!this.hasQuit)
+                    this.ws = this.connect();
+            }, 5000);
         }
 
         this.props.onClose(this.props.address);

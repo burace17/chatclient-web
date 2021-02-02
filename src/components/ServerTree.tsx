@@ -81,7 +81,7 @@ class ServerTree extends React.Component<Properties, State> {
            );
         });
 
-        const containerClass = this.props.isHidden ? "server-tree hidden" : "server-tree";
+        const containerClass = this.props.isHidden ? "server-container hidden" : "server-container scrollbar";
 
         return (
             <div className={containerClass}>
