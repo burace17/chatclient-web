@@ -3,7 +3,7 @@
 }
 
 #root {
-    height: calc(99vh - var(--vh-offset, 0px));
+    height: var(--vh-offset, 99vh);
 }
 
 .App {

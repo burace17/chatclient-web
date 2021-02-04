@@ -13,7 +13,7 @@
     background-color: transparent;
     border: 1px solid white;
     color: white;
-    height: 25px;
+    padding: 5px;
 }
 
 @media(hover: hover) and (pointer: fine) {
