@@ -5,6 +5,11 @@
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
         monospace;
     border: 1px solid white;
+    width: 100%;
+}
+
+.text {
+    font-size: 14px;
 }
 
 .button {

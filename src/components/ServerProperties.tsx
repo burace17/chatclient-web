@@ -24,22 +24,20 @@ export default class ServerProperties extends React.Component<Properties> {
         };
 
         return (
-            <form>
-                <ul className="server-form">
-                    <li className="server-form-row">
-                        <input type="text" className="textbox" placeholder="Server Address..." autoFocus
-                            onChange={onServerAddressChanged} defaultValue={this.props.defaultAddress} />
-                    </li>
-                    <li className="server-form-row">
-                        <input type="text" className="textbox" placeholder="Username..."
-                            onChange={onUsernameChanged} defaultValue={this.props.defaultUsername} />
-                    </li>
-                    <li className="server-form-row">
-                        <input type="password" className="textbox" placeholder="Password..."
-                            onChange={onPasswordChanged} defaultValue={this.props.defaultPassword} />
-                    </li>
-                </ul>
-            </form>
+            <ul className="server-form">
+                <li className="server-form-row">
+                    <input type="text" className="textbox" placeholder="Server Address..." autoFocus
+                        onChange={onServerAddressChanged} defaultValue={this.props.defaultAddress} />
+                </li>
+                <li className="server-form-row">
+                    <input type="text" className="textbox" placeholder="Username..."
+                        onChange={onUsernameChanged} defaultValue={this.props.defaultUsername} />
+                </li>
+                <li className="server-form-row">
+                    <input type="password" className="textbox" placeholder="Password..."
+                        onChange={onPasswordChanged} defaultValue={this.props.defaultPassword} />
+                </li>
+            </ul>
         );
     }
 }

@@ -6,6 +6,7 @@ import Chat from "./components/Chat";
 import UserList from "./components/UserList";
 import Client from "./net/client";
 import { ClientMessage, ClientProperties } from "./net/client";
+import ServerPropertiesDialog from "./components/ServerPropertiesDialog";
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
     let arr = [];
@@ -50,24 +51,31 @@ function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
 interface Properties { }
 
 interface State {
-    serverNames: Array<ServerInfo>
-    selectedChannel: Channel | null
-    currentChannelMessages: Array<ClientMessage>
-    hideServerTree: boolean
-    canSendMessage: boolean
+    serverNames: Array<ServerInfo>;
+    selectedChannel: Channel | null;
+    currentChannelMessages: Array<ClientMessage>;
+    hideServerTree: boolean;
+    canSendMessage: boolean;
+
+    showServerProperties: boolean;
+    serverPropsAddress?: string;
+    serverPropsUsername?: string;
+    serverPropsPassword?: string;
+    serverPropsInfo?: string;
 }
 
 class App extends React.Component<Properties, State> {
-    private clients: Map<string, Client>;
+    private clients: Map<string, Client> = new Map<string, Client>();
     constructor(props: Properties) {
         super(props);
-        this.clients = new Map<string, Client>();
         this.state = {
             serverNames: [],
             selectedChannel: null,
             currentChannelMessages: [],
             hideServerTree: false,
-            canSendMessage: false
+            canSendMessage: false,
+
+            showServerProperties: false,
         }
     }
 
@@ -163,7 +171,12 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onServerAdded = async (address: string, username: string, password: string, persist: boolean) => {
+    private onServerAdded = async (address: string | undefined, username: string | undefined, password: string | undefined, 
+        persist: boolean) => {
+        if (!address || !username || !password) {
+            this.writeToCurrentChat("Could not add server");
+            return;
+        }
         if (this.clients.has(address))
             return; // todo: show a notification
 
@@ -172,7 +185,7 @@ class App extends React.Component<Properties, State> {
             username: username,
             password: password,
             onOpen: (_) => { }, // might be able to remove..
-            onClose: this.onClose,
+            onClose: this.onConnectionClose,
             onMessage: this.onMessageReceived,
             onWelcome: this.onWelcome,
             onJoin: (addr, channel, username) => {},
@@ -189,12 +202,21 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onClose = (address: string, wasClean: boolean, code: number) => {
+    private onConnectionClose = (address: string, wasClean: boolean, code: number, reason: string) => {
         this.setState(state => {
-            return {
-                serverNames: getNamesAndAddresses(this.clients),
-                canSendMessage: state.selectedChannel?.address !== address
-            };
+            let newState: any = {};
+            if (wasClean && code !== 1000) {
+                const client = this.clients.get(address);
+                newState.serverPropsAddress = address;
+                newState.serverPropsUsername = client?.getProps().username;
+                newState.serverPropsPassword = client?.getProps().password;
+                newState.serverPropsInfo = reason;
+                newState.showServerProperties = true;
+            }
+
+            newState.serverNames = getNamesAndAddresses(this.clients);
+            newState.canSendMessage = state.selectedChannel?.address !== address
+            return newState;
         });
     }
 
@@ -241,6 +263,20 @@ class App extends React.Component<Properties, State> {
         this.onSelectedChannelChanged({address: addr, name: channel});
     }
 
+    private onServerModified = async (address: string | undefined, username: string | undefined, password: string | undefined) => {
+        if (address && username && password) {
+            this.clients.delete(address);
+            await this.onServerAdded(address, username, password, true);
+        }
+        else {
+            this.writeToCurrentChat("Couldn't modify server properties.");
+        }
+    }
+
+    private onServerModifyDialogClose = () => {
+        this.setState({ showServerProperties: false });
+    }
+
     render() {
         return (
             <div className="App">
@@ -253,6 +289,10 @@ class App extends React.Component<Properties, State> {
                         canSendMessage={this.state.canSendMessage} />
                     <UserList />
                 </div>
+                <ServerPropertiesDialog show={this.state.showServerProperties} onClose={this.onServerModifyDialogClose} 
+                    onCommit={this.onServerModified} title="Server Properties" okButtonText="Modify" 
+                    defaultServerAddress={this.state.serverPropsAddress} defaultUsername={this.state.serverPropsUsername}
+                    defaultPassword={this.state.serverPropsPassword} infoText={this.state.serverPropsInfo} />
             </div>
         );
     }

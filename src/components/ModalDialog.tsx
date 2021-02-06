@@ -1,5 +1,5 @@
 import Modal from "react-modal";
-import "./ChatModal.css";
+import "./ModalDialog.css";
 import "./util.css";
 
 interface Properties {
@@ -17,7 +17,7 @@ interface Properties {
     children: React.ReactNode;
 }
 
-export default function ChatModal(props: Properties) {
+export default function ModalDialog(props: Properties) {
     return (
         <Modal isOpen={props.isOpen} contentLabel={props.title} onRequestClose={props.onClose}
                className="modal" overlayClassName="content" shouldCloseOnOverlayClick={false}>
@@ -31,11 +31,13 @@ export default function ChatModal(props: Properties) {
                 </button>
             </div>
             <hr />
-            {props.children}
-            {props.showOkButton && 
-                <button className="button" onClick={props.onOkButtonPressed}>{props.okButtonText ?? "OK"}</button>}
-            {props.showCancelButton &&
-                <button className="button" onClick={props.onClose}>{props.cancelButtonText ?? "Cancel"}</button>}
+            <form>
+                {props.children}
+                {props.showOkButton && 
+                    <button type="submit" className="button" onClick={props.onOkButtonPressed}>{props.okButtonText ?? "OK"}</button>}
+                {props.showCancelButton &&
+                    <button type="button" className="button" onClick={props.onClose}>{props.cancelButtonText ?? "Cancel"}</button>}
+            </form>
         </Modal>
     );
 }

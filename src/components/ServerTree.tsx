@@ -1,12 +1,12 @@
 import "./ServerTree.css";
 import "./util.css";
-import AddServerDialog from "./AddServerDialog";
+import ServerPropertiesDialog from "./ServerPropertiesDialog";
 import { ServerInfo, Channel } from "../App";
 import React from "react";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 interface Properties {
-    onServerAdded: (addr: string, username: string, password: string, persist: boolean) => void;
+    onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => void;
     onServerRemoved: (addr: string) => void;
     onSelectedChannelChanged: (newChannel: Channel) => void;
     connectedServers: Array<ServerInfo>;
@@ -34,9 +34,9 @@ class ServerTree extends React.Component<Properties, State> {
         this.setState({ showAddServer: false });
     }
 
-    private addServerDialogCommitted = (address: string, username: string, password: string) => {
+    private addServerDialogCommitted = (address?: string, username?: string, password?: string) => {
         this.setState({ showAddServer: false });
-        this.props.onServerAdded("wss://" + address + ":1337", username, password, true);
+        this.props.onServerAdded(address, username, password, true);
     }
 
     private createChannelNameButton = (address: string, name: string) => {
@@ -89,8 +89,8 @@ class ServerTree extends React.Component<Properties, State> {
                 <ul>
                     {servers}
                 </ul>
-                <AddServerDialog show={this.state.showAddServer} onClose={this.addServerDialogClosed} 
-                                 onCommit={this.addServerDialogCommitted} />
+                <ServerPropertiesDialog show={this.state.showAddServer} onClose={this.addServerDialogClosed} 
+                                 onCommit={this.addServerDialogCommitted} title="Add Server" okButtonText="Add" />
             </div>
         );
     }
