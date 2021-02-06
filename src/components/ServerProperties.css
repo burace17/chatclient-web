@@ -1,0 +1,13 @@
+.server-form {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.server-form-row {
+    padding: .5em .5em .5em 0;
+}
+
+.server-form-row > button {
+    width: 100%;
+}

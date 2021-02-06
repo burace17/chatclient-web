@@ -1,7 +1,6 @@
-import "./util.css";
-import "./AddServerDialog.css";
-import Modal from "react-modal";
 import React from "react";
+import ChatModal from "./ChatModal";
+import ServerProperties from "./ServerProperties";
 
 interface Properties {
     show: boolean;
@@ -25,54 +24,19 @@ class AddServerDialog extends React.Component<Properties, State> {
         }
     }
 
-    private onServerAddressChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ serverAddress: e.target.value });
-    }
-
-    private onUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ username: e.target.value });
-    }
-
-    private onPasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ password: e.target.value });
-    }
-
     render() {
         const discard = () => this.props.onClose();
         const commit = () => this.props.onCommit(this.state.serverAddress, this.state.username, this.state.password);
+        const onServerAddressChanged = (address: string) => this.setState({ serverAddress: address });
+        const onUsernameChanged = (username: string) => this.setState({ username });
+        const onPasswordChanged = (password: string) => this.setState({ password });
 
         return (
-            <Modal isOpen={this.props.show} contentLabel="Add Server" onRequestClose={discard}
-                    className="modal" overlayClassName="content" shouldCloseOnOverlayClick={false}>
-                <div className="content-header">
-                    <h4 className="close-header">Add a server</h4>
-                    <button onClick={discard} className="close-button">
-                        <svg viewBox="0 0 1 1" height="20" width="20" opacity="0.3" className="close">
-                            <line x1="0" y1="1" x2="1" y2="0" stroke="white" strokeWidth="0.1" />
-                            <line x1="0" y1="0" x2="1" y2="1" stroke="white" strokeWidth="0.1" />
-                        </svg>
-                    </button>
-                </div>
-                <hr />
-                <form>
-                    <ul className="server-form">
-                        <li className="server-form-row">
-                            <input type="text" className="textbox" placeholder="Server Address..." autoFocus 
-                                   onChange={this.onServerAddressChanged} />
-                        </li>
-                        <li className="server-form-row">
-                            <input type="text" className="textbox" placeholder="Username..." 
-                                   onChange={this.onUsernameChanged} />
-                        </li>
-                        <li className="server-form-row">
-                            <input type="password" className="textbox" placeholder="Password..." 
-                                   onChange={this.onPasswordChanged} />
-                        </li>
-                    </ul>
-                    <button className="button" onClick={commit}>Add</button>
-                    <button className="button" onClick={discard}>Cancel</button>
-                </form>
-            </Modal>
+            <ChatModal isOpen={this.props.show} title="Add Server" showOkButton={true} showCancelButton={true} 
+                       okButtonText="Add" onOkButtonPressed={commit} onClose={discard}>
+                <ServerProperties onServerAddressChanged={onServerAddressChanged} onUsernameChanged={onUsernameChanged}
+                    onPasswordChanged={onPasswordChanged} />
+            </ChatModal>
         );
     }
 }

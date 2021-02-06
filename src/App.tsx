@@ -189,7 +189,7 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onClose = (address: string) => {
+    private onClose = (address: string, wasClean: boolean, code: number) => {
         this.setState(state => {
             return {
                 serverNames: getNamesAndAddresses(this.clients),

@@ -10,7 +10,7 @@ export interface ClientProperties {
     username: string;
     password: string;
     onOpen: (addr: string) => void;
-    onClose: (addr: string) => void;
+    onClose: (addr: string, wasClean: boolean, reason: number) => void;
     onMessage: (addr: string, channel: string) => void;
     onWelcome: (addr: string, channels: Array<string>) => void;
     onSelfJoin: (addr: string, channel: string) => void;
@@ -62,7 +62,7 @@ class Client {
             }, 5000);
         }
 
-        this.props.onClose(this.props.address);
+        this.props.onClose(this.props.address, e.wasClean, e.code);
     }
 
     private socketOnMessage = (evt: MessageEvent<any>) => {
