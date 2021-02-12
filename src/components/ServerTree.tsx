@@ -16,13 +16,20 @@ interface Properties {
 
 interface State {
     showAddServer: boolean;
+
+    showModifyServer: boolean;
+    modifyServerAddress?: string;
+    modifyServerUsername?: string;
+    modifyServerPassword?: string;
+    modifyServerInfo?: string;
 }
 
 class ServerTree extends React.Component<Properties, State> {
     constructor(props: Properties) {
         super(props);
         this.state = {
-            showAddServer: false
+            showAddServer: false,
+            showModifyServer: false
         };
     }
 
@@ -30,12 +37,38 @@ class ServerTree extends React.Component<Properties, State> {
         this.setState({ showAddServer: true });
     }
 
-    private addServerDialogClosed = () => {
+    private hideAddServerDialog = () => {
         this.setState({ showAddServer: false });
     }
 
     private addServerDialogCommitted = (address?: string, username?: string, password?: string) => {
         this.setState({ showAddServer: false });
+        this.props.onServerAdded(address, username, password, true);
+    }
+
+    private showModifyServerDialog = (info: ServerInfo) => {
+        this.setState({
+            showModifyServer: true,
+            modifyServerAddress: info.address,
+            modifyServerUsername: info.username,
+            modifyServerPassword: info.password
+        });
+    }
+
+
+    private hideModifyServerDialog = () => {
+        this.setState({
+            showModifyServer: false,
+            modifyServerAddress: undefined,
+            modifyServerUsername: undefined,
+            modifyServerPassword: undefined,
+            modifyServerInfo: undefined
+        });
+    }
+
+
+    private modifyServerDialogCommitted = (address?: string, username?: string, password?: string) => {
+        this.setState({ showModifyServer: false });
         this.props.onServerAdded(address, username, password, true);
     }
 
@@ -45,13 +78,24 @@ class ServerTree extends React.Component<Properties, State> {
 
         return (
             <li key={name}>
-                <ContextMenuTrigger id="channel_context_trigger">
-                    <button className={className} onClick={() => { this.props.onSelectedChannelChanged({ address, name })}}>
+                <ContextMenuTrigger id={"channel_context_trigger_" + address + name}>
+                    <button className={className} onClick={() => this.props.onSelectedChannelChanged({ address, name })}>
                         {name}
                     </button>
                 </ContextMenuTrigger>
-            </li> 
+                <ContextMenu id={"channel_context_trigger_" + address + name} className="context-menu">
+                    <MenuItem className="context-menu-item">Leave Channel</MenuItem>
+                </ContextMenu>
+            </li>
         );
+    }
+
+    private createServerPropertiesButton = (info: ServerInfo) => {
+        return (
+            <button type="button" className="button image-button">
+                <img src="disconnect.svg" alt="Disconnected" />
+            </button>
+        )
     }
 
     // TODO: add types..
@@ -59,26 +103,38 @@ class ServerTree extends React.Component<Properties, State> {
         this.props.onServerRemoved(obj.address);
     }
 
+    private onShowPropertiesClicked = (_: Event, obj: any) => {
+        this.showModifyServerDialog(obj.info);
+    }
+
+    private onReconnectClicked = (_: Event, obj: any) => {
+        const info: ServerInfo = obj.info;
+        this.props.onServerAdded(info.address, info.username, info.password, true);
+    }
+
     render() {
+        const connected = "server-name";
+        const disconnected = "server-name disconnected-server";
         const servers = this.props.connectedServers.map(info => {
-            const collect = (data: any) => { return { address: info.address } };
             return (
                 <li key={info.address}>
-                    <ContextMenuTrigger id="server_context_trigger" collect={collect}>
-                        <div className="server-name">{info.name}</div>
+                    <ContextMenuTrigger id={"server_context_trigger_" + info.address}>
+                        <div className={info.isClosed ? disconnected : connected}>
+                            {info.name}
+                            {info.isClosed && this.createServerPropertiesButton(info)}
+                        </div>
                     </ContextMenuTrigger>
                     <ul>
                         {info.channelNames.map(name => this.createChannelNameButton(info.address, name))}
                     </ul>
-                    <ContextMenu id="server_context_trigger" className="context-menu">
+                    <ContextMenu id={"server_context_trigger_" + info.address} className="context-menu">
                         <MenuItem className="context-menu-item">Join Channel</MenuItem>
-                        <MenuItem className="context-menu-item" onClick={this.onLeaveServerClicked}>Leave Server</MenuItem>
-                    </ContextMenu>
-                    <ContextMenu id="channel_context_trigger" className="context-menu">
-                        <MenuItem className="context-menu-item">Leave Channel</MenuItem>
+                        <MenuItem className="context-menu-item" data={{info}} onClick={this.onReconnectClicked}>Reconnect</MenuItem>
+                        <MenuItem className="context-menu-item" data={{address: info.address}} onClick={this.onLeaveServerClicked}>Leave Server</MenuItem>
+                        <MenuItem className="context-menu-item" data={{info}} onClick={this.onShowPropertiesClicked}>Properties...</MenuItem>
                     </ContextMenu>
                 </li>
-           );
+            );
         });
 
         const containerClass = this.props.isHidden ? "server-container hidden" : "server-container scrollbar";
@@ -89,8 +145,12 @@ class ServerTree extends React.Component<Properties, State> {
                 <ul>
                     {servers}
                 </ul>
-                <ServerPropertiesDialog show={this.state.showAddServer} onClose={this.addServerDialogClosed} 
-                                 onCommit={this.addServerDialogCommitted} title="Add Server" okButtonText="Add" />
+                <ServerPropertiesDialog show={this.state.showAddServer} onClose={this.hideAddServerDialog}
+                    onCommit={this.addServerDialogCommitted} title="Add Server" okButtonText="Add" />
+                <ServerPropertiesDialog show={this.state.showModifyServer} onClose={this.hideModifyServerDialog}
+                    onCommit={this.modifyServerDialogCommitted} title="Modify Server" okButtonText="Modify"
+                    defaultServerAddress={this.state.modifyServerAddress} defaultUsername={this.state.modifyServerUsername}
+                    defaultPassword={this.state.modifyServerPassword} infoText={this.state.modifyServerInfo} />
             </div>
         );
     }

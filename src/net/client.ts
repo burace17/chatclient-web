@@ -10,7 +10,7 @@ export interface ClientProperties {
     username: string;
     password: string;
     onOpen: (addr: string) => void;
-    onClose: (addr: string, wasClean: boolean, code: number, reason: string) => void;
+    onClose: (addr: string) => void;
     onMessage: (addr: string, channel: string) => void;
     onWelcome: (addr: string, channels: Array<string>) => void;
     onSelfJoin: (addr: string, channel: string) => void;
@@ -24,6 +24,8 @@ class Client {
     private channels: Array<string> = [];
     private channelMessages = new Map<string, Array<ClientMessage>>();
     private hasQuit: boolean = false;
+    private quitReason: string | undefined;
+    private quitCode: number | undefined;
 
     constructor(props: ClientProperties) {
         this.props = props;
@@ -54,15 +56,19 @@ class Client {
     private socketOnClose = (e: CloseEvent) => {
         console.log("websocket closed - clean: " + e.wasClean + ", code: " + e.code + ", reason: " + e.reason);
 
-        // try to reconnect if it didn"t close cleanly.
-        if (!e.wasClean) {
+        // try to reconnect if it didn't close cleanly.
+        // note that firefox seems to set wasClean differently than chrome, so also check the code
+        if (!e.wasClean && e.code < 4000) {
             setTimeout(() => {
                 if (!this.hasQuit)
                     this.ws = this.connect();
             }, 5000);
         }
 
-        this.props.onClose(this.props.address, e.wasClean, e.code, e.reason);
+        this.quitCode = e.code;
+        this.quitReason = e.reason;
+
+        this.props.onClose(this.props.address);
     }
 
     private socketOnMessage = (evt: MessageEvent<any>) => {
@@ -137,6 +143,18 @@ class Client {
         return this.ws.readyState === 1;
     }
 
+    isClosingOrClosed() {
+        return this.ws.readyState === 2 || this.ws.readyState === 3;
+    }
+
+    getQuitCode() {
+        return this.quitCode;
+    }
+
+    getQuitReason() {
+        return this.quitReason;
+    }
+
     sendMessage(channel: string, text: string) {
         const packet = {
             "cmd": "MSG",
@@ -157,6 +175,7 @@ class Client {
     }
 
     quit() {
+        this.hasQuit = true;
         this.ws.close(1000);
     }
 }

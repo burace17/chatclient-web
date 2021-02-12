@@ -6,7 +6,6 @@ import Chat from "./components/Chat";
 import UserList from "./components/UserList";
 import Client from "./net/client";
 import { ClientMessage, ClientProperties } from "./net/client";
-import ServerPropertiesDialog from "./components/ServerPropertiesDialog";
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
     let arr = [];
@@ -29,9 +28,13 @@ export interface Channel {
 
 export interface ServerInfo {
     address: string;
+    username: string;
+    password: string;
     name: string;
     channelNames: Array<string>;
-    isConnected: boolean;
+    isClosed: boolean;
+    quitReason?: string;
+    quitCode?: number;
 }
 
 function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
@@ -41,9 +44,13 @@ function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
         const channels = client.getChannels();
         return {
             address: addr,
+            username: client.getProps().username,
+            password: client.getProps().password,
             name: name,
             channelNames: channels,
-            isConnected: client.isConnected()
+            isClosed: client.isClosingOrClosed(),
+            quitReason: client.getQuitReason(),
+            quitCode: client.getQuitCode()
         };
     });
 }
@@ -56,12 +63,6 @@ interface State {
     currentChannelMessages: Array<ClientMessage>;
     hideServerTree: boolean;
     canSendMessage: boolean;
-
-    showServerProperties: boolean;
-    serverPropsAddress?: string;
-    serverPropsUsername?: string;
-    serverPropsPassword?: string;
-    serverPropsInfo?: string;
 }
 
 class App extends React.Component<Properties, State> {
@@ -74,8 +75,6 @@ class App extends React.Component<Properties, State> {
             currentChannelMessages: [],
             hideServerTree: false,
             canSendMessage: false,
-
-            showServerProperties: false,
         }
     }
 
@@ -177,8 +176,11 @@ class App extends React.Component<Properties, State> {
             this.writeToCurrentChat("Could not add server");
             return;
         }
-        if (this.clients.has(address))
-            return; // todo: show a notification
+
+        const existingClient = this.clients.get(address);
+        if (existingClient)
+            existingClient.quit();
+        this.clients.delete(address);
 
         const props: ClientProperties = {
             address: address,
@@ -202,21 +204,12 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onConnectionClose = (address: string, wasClean: boolean, code: number, reason: string) => {
+    private onConnectionClose = (address: string) => {
         this.setState(state => {
-            let newState: any = {};
-            if (wasClean && code !== 1000) {
-                const client = this.clients.get(address);
-                newState.serverPropsAddress = address;
-                newState.serverPropsUsername = client?.getProps().username;
-                newState.serverPropsPassword = client?.getProps().password;
-                newState.serverPropsInfo = reason;
-                newState.showServerProperties = true;
-            }
-
-            newState.serverNames = getNamesAndAddresses(this.clients);
-            newState.canSendMessage = state.selectedChannel?.address !== address
-            return newState;
+            return {
+                serverNames: getNamesAndAddresses(this.clients),
+                canSendMessage: state.selectedChannel?.address !== address
+            };
         });
     }
 
@@ -263,20 +256,6 @@ class App extends React.Component<Properties, State> {
         this.onSelectedChannelChanged({address: addr, name: channel});
     }
 
-    private onServerModified = async (address: string | undefined, username: string | undefined, password: string | undefined) => {
-        if (address && username && password) {
-            this.clients.delete(address);
-            await this.onServerAdded(address, username, password, true);
-        }
-        else {
-            this.writeToCurrentChat("Couldn't modify server properties.");
-        }
-    }
-
-    private onServerModifyDialogClose = () => {
-        this.setState({ showServerProperties: false });
-    }
-
     render() {
         return (
             <div className="App">
@@ -289,10 +268,6 @@ class App extends React.Component<Properties, State> {
                         canSendMessage={this.state.canSendMessage} />
                     <UserList />
                 </div>
-                <ServerPropertiesDialog show={this.state.showServerProperties} onClose={this.onServerModifyDialogClose} 
-                    onCommit={this.onServerModified} title="Server Properties" okButtonText="Modify" 
-                    defaultServerAddress={this.state.serverPropsAddress} defaultUsername={this.state.serverPropsUsername}
-                    defaultPassword={this.state.serverPropsPassword} infoText={this.state.serverPropsInfo} />
             </div>
         );
     }
