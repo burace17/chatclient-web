@@ -31,7 +31,7 @@ export default function ModalDialog(props: Properties) {
                 </button>
             </div>
             <hr />
-            <form>
+            <form onSubmit={e => e.preventDefault()}>
                 {props.children}
                 {props.showOkButton && 
                     <button type="submit" className="button" onClick={props.onOkButtonPressed}>{props.okButtonText ?? "OK"}</button>}

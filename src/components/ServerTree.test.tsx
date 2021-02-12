@@ -1,13 +1,14 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import ServerTree from "./ServerTree";
-import { Channel } from "../App";
+import { Channel, ServerInfo } from "../App";
+import Modal from "react-modal";
 
 test("Leave server", () => {
     const server1 = {
-        address: "wss://192.168.0.111",
+        address: "wss://192.168.0.111:1337",
         username: "username",
         password: "password",
-        name: "wss://192.168.0.111",
+        name: "wss://192.168.0.111:1337",
         channelNames: [],
         isClosed: true
     };
@@ -21,9 +22,9 @@ test("Leave server", () => {
     };
 
     let servers = [server1, server2];
-    const onServerAdded = (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => {};
-    const onServerRemoved = (addr: string) => { servers = servers.filter(obj => obj.address !== addr )};
-    const onSelectedChannelChanged = (_: Channel) => {};
+    const onServerAdded = jest.fn();
+    const onServerRemoved = jest.fn();
+    const onSelectedChannelChanged = jest.fn();
     const selectedChannel: Channel | null = null;
     const isHidden = false;
 
@@ -32,16 +33,63 @@ test("Leave server", () => {
         onSelectedChannelChanged={onSelectedChannelChanged} />);
 
     const server1Element = screen.getByText(/192.168.0.111/i);
-    expect(server1Element).toBeInTheDocument();
-
     fireEvent.click(server1Element, { button: 2 });
 
     const contextMenuWrapper = server1Element.parentElement!.parentElement!;
     const leaveServerButton = within(contextMenuWrapper).getByRole("menuitem", { name: /leave server/i });
-    expect(leaveServerButton).toBeInTheDocument();
-
     fireEvent.click(leaveServerButton);
 
-    expect(servers.length === 1).toBeTruthy();
-    expect(servers.find(obj => obj.name === "Server 2")).toBeTruthy();
+    expect(onServerRemoved).toHaveBeenCalledTimes(1);
+    expect(onServerRemoved).toHaveBeenCalledWith("wss://192.168.0.111:1337");
+    expect(onServerAdded).not.toHaveBeenCalled();
+});
+
+test("Add server", () => {
+    const servers: ServerInfo[] = [];
+    const onServerAdded = jest.fn();
+    const onServerRemoved = jest.fn();
+    const onSelectedChannelChanged = jest.fn();
+    const selectedChannel: Channel | null = null
+    const isHidden = false;
+
+    render(<div id="root"><ServerTree connectedServers={servers} selectedChannel={selectedChannel} isHidden={isHidden}
+        onServerAdded={onServerAdded} onServerRemoved={onServerRemoved} 
+        onSelectedChannelChanged={onSelectedChannelChanged} /></div>);
+    Modal.setAppElement("#root");
+
+
+    const testAddServer = (addr: string, username: string, password: string, shouldSubmit: boolean) => {
+        const addServerButton = screen.getByRole("button", { name: "Add a server"});
+        fireEvent.click(addServerButton);
+
+        const addressElem = screen.getByPlaceholderText(/address/i);
+        fireEvent.change(addressElem, { target: { value: addr } });
+
+        const userElem = screen.getByPlaceholderText(/username/i);
+        fireEvent.change(userElem, { target: { value: username } });
+
+        const passwordElem = screen.getByPlaceholderText(/password/i);
+        fireEvent.change(passwordElem, { target: { value: password } });
+
+        if (shouldSubmit) {
+            const submit = screen.getByRole("button", { name: "Add" });
+            fireEvent.click(submit);
+        }
+        else {
+            // TODO: key presses aren't working with this for some reason.
+            //const dialog = screen.getByRole("dialog");
+            //fireEvent.keyPress(dialog, { key: "Escape", code: "Escape" });
+            const cancel = screen.getByRole("button", { name: "Cancel" });
+            fireEvent.click(cancel);
+        }
+    };
+
+    const combos: [string, string, string, boolean][] = [
+        ["localhost", "myusername", "mypassword", true],
+        ["192.168.1.1", "someotheruser", "really secret password", false],
+        ["192.168.1.126", "test", "testpassword", true]
+    ];
+
+    combos.forEach(args => testAddServer.apply(this, args));
+    expect(onServerAdded).toHaveBeenCalledTimes(combos.filter(args => args[3]).length);
 });
