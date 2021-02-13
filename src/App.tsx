@@ -62,6 +62,7 @@ interface State {
     selectedChannel: Channel | null;
     currentChannelMessages: Array<ClientMessage>;
     hideServerTree: boolean;
+    hideUserList: boolean;
     canSendMessage: boolean;
 }
 
@@ -74,6 +75,7 @@ class App extends React.Component<Properties, State> {
             selectedChannel: null,
             currentChannelMessages: [],
             hideServerTree: false,
+            hideUserList: false,
             canSendMessage: false,
         }
     }
@@ -221,6 +223,14 @@ class App extends React.Component<Properties, State> {
         });
     }
 
+    private onToggleUserList = () => {
+        this.setState(state => {
+            return {
+                hideUserList: !state.hideUserList
+            };
+        });
+    }
+
     private getStoredServers = async () => {
         if (window.credentialManager) {
             // TODO: Make this type safe
@@ -259,14 +269,15 @@ class App extends React.Component<Properties, State> {
     render() {
         return (
             <div className="App">
-                <Header channel={this.state.selectedChannel?.name ?? ""} onToggleServerTree={this.onToggleServerTree} />
+                <Header channel={this.state.selectedChannel?.name ?? ""} onToggleServerTree={this.onToggleServerTree} 
+                        onToggleUserList={this.onToggleUserList} />
                 <div className="App-container">
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
                         selectedChannel={this.state.selectedChannel} onSelectedChannelChanged={this.onSelectedChannelChanged}
                         isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
                     <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage}
                         canSendMessage={this.state.canSendMessage} />
-                    <UserList />
+                    <UserList isHidden={this.state.hideUserList} />
                 </div>
             </div>
         );

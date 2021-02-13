@@ -5,18 +5,19 @@
     align-items: center;
 }
 
-.toggle-server {
+.burger-button {
     border: 0;
     background-color: transparent;
     padding-top: 5px;
 }
 
 @media(hover: hover) and (pointer: fine) {
-    .toggle-server:hover {
+    .burger-button:hover {
         background-color: grey;
     }
 }
 
 .channel-name {
+    flex: auto;
     margin-left: 10px;
 }
