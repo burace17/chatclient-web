@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+ 
 function createTestElement(): HTMLElement {
   const testElement: HTMLElement = document.createElement("div");
   testElement.style.cssText = "position: fixed; top: 0; height: 100vh; pointer-events: none;";
