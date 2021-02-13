@@ -41,7 +41,7 @@ class ServerTree extends React.Component<Properties, State> {
         this.setState({ showAddServer: false });
     }
 
-    private addServerDialogCommitted = (address?: string, username?: string, password?: string) => {
+    private onAddServerCommitted = (address?: string, username?: string, password?: string) => {
         this.setState({ showAddServer: false });
         this.props.onServerAdded(address, username, password, true);
     }
@@ -55,7 +55,6 @@ class ServerTree extends React.Component<Properties, State> {
         });
     }
 
-
     private hideModifyServerDialog = () => {
         this.setState({
             showModifyServer: false,
@@ -66,36 +65,9 @@ class ServerTree extends React.Component<Properties, State> {
         });
     }
 
-
-    private modifyServerDialogCommitted = (address?: string, username?: string, password?: string) => {
+    private onModifyServerCommitted = (address?: string, username?: string, password?: string) => {
         this.setState({ showModifyServer: false });
         this.props.onServerAdded(address, username, password, true);
-    }
-
-    private createChannelNameButton = (address: string, name: string) => {
-        const selected = address === this.props.selectedChannel?.address && name === this.props.selectedChannel.name;
-        const className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
-
-        return (
-            <li key={name}>
-                <ContextMenuTrigger id={"channel_context_trigger_" + address + name}>
-                    <button className={className} onClick={() => this.props.onSelectedChannelChanged({ address, name })}>
-                        {name}
-                    </button>
-                </ContextMenuTrigger>
-                <ContextMenu id={"channel_context_trigger_" + address + name} className="context-menu">
-                    <MenuItem className="context-menu-item">Leave Channel</MenuItem>
-                </ContextMenu>
-            </li>
-        );
-    }
-
-    private createServerPropertiesButton = (info: ServerInfo) => {
-        return (
-            <button type="button" className="button image-button">
-                <img src="disconnect.svg" alt="Disconnected" />
-            </button>
-        )
     }
 
     // TODO: add types..
@@ -112,31 +84,54 @@ class ServerTree extends React.Component<Properties, State> {
         this.props.onServerAdded(info.address, info.username, info.password, true);
     }
 
-    render() {
-        const connected = "server-name";
-        const disconnected = "server-name disconnected-server";
-        const servers = this.props.connectedServers.map(info => {
-            return (
-                <li key={info.address}>
-                    <ContextMenuTrigger id={"server_context_trigger_" + info.address}>
-                        <div className={info.isClosed ? disconnected : connected}>
-                            {info.name}
-                            {info.isClosed && this.createServerPropertiesButton(info)}
-                        </div>
-                    </ContextMenuTrigger>
-                    <ul>
-                        {info.channelNames.map(name => this.createChannelNameButton(info.address, name))}
-                    </ul>
-                    <ContextMenu id={"server_context_trigger_" + info.address} className="context-menu">
-                        <MenuItem className="context-menu-item">Join Channel</MenuItem>
-                        <MenuItem className="context-menu-item" data={{info}} onClick={this.onReconnectClicked}>Reconnect</MenuItem>
-                        <MenuItem className="context-menu-item" data={{address: info.address}} onClick={this.onLeaveServerClicked}>Leave Server</MenuItem>
-                        <MenuItem className="context-menu-item" data={{info}} onClick={this.onShowPropertiesClicked}>Properties...</MenuItem>
-                    </ContextMenu>
-                </li>
-            );
-        });
+    private createChannel = (serverAddress: string, name: string) => {
+        const selected = serverAddress === this.props.selectedChannel?.address && name === this.props.selectedChannel.name;
+        const className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
 
+        return (
+            <li key={name}>
+                <ContextMenuTrigger id={"channel_context_trigger_" + serverAddress + name}>
+                    <button className={className} onClick={() => this.props.onSelectedChannelChanged({ address: serverAddress, name })}>
+                        {name}
+                    </button>
+                </ContextMenuTrigger>
+                <ContextMenu id={"channel_context_trigger_" + serverAddress + name} className="context-menu">
+                    <MenuItem className="context-menu-item">Leave Channel</MenuItem>
+                </ContextMenu>
+            </li>
+        );
+    }
+
+    private createServer = (info: ServerInfo) => {
+        return (
+            <li key={info.address}>
+                <ContextMenuTrigger id={"server_context_trigger_" + info.address}>
+                    <div className="server-name">
+                        {info.name}
+                        {info.isClosed && this.createDisconnectedImage(info.quitReason)}
+                    </div>
+                </ContextMenuTrigger>
+                <ul>
+                    {info.channelNames.map(name => this.createChannel(info.address, name))}
+                </ul>
+                <ContextMenu id={"server_context_trigger_" + info.address} className="context-menu">
+                    <MenuItem className="context-menu-item">Join Channel</MenuItem>
+                    <MenuItem className="context-menu-item" data={{info}} onClick={this.onReconnectClicked}>Reconnect</MenuItem>
+                    <MenuItem className="context-menu-item" data={{address: info.address}} onClick={this.onLeaveServerClicked}>Leave Server</MenuItem>
+                    <MenuItem className="context-menu-item" data={{info}} onClick={this.onShowPropertiesClicked}>Properties...</MenuItem>
+                </ContextMenu>
+            </li>
+        );
+    }
+
+    private createDisconnectedImage = (disconnectInfo?: string) => {
+        return (
+            <img src="disconnect.svg" alt="Disconnected" className="disconnected-image" title={disconnectInfo} />
+        )
+    }
+
+    render() {
+        const servers = this.props.connectedServers.map(this.createServer);
         const containerClass = this.props.isHidden ? "server-container hidden" : "server-container scrollbar";
 
         return (
@@ -146,9 +141,9 @@ class ServerTree extends React.Component<Properties, State> {
                     {servers}
                 </ul>
                 <ServerPropertiesDialog show={this.state.showAddServer} onClose={this.hideAddServerDialog}
-                    onCommit={this.addServerDialogCommitted} title="Add Server" okButtonText="Add" />
+                    onCommit={this.onAddServerCommitted} title="Add Server" okButtonText="Add" />
                 <ServerPropertiesDialog show={this.state.showModifyServer} onClose={this.hideModifyServerDialog}
-                    onCommit={this.modifyServerDialogCommitted} title="Modify Server" okButtonText="Modify"
+                    onCommit={this.onModifyServerCommitted} title="Modify Server" okButtonText="Modify"
                     defaultServerAddress={this.state.modifyServerAddress} defaultUsername={this.state.modifyServerUsername}
                     defaultPassword={this.state.modifyServerPassword} infoText={this.state.modifyServerInfo} />
             </div>

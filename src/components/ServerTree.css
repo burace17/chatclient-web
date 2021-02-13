@@ -66,10 +66,7 @@ ul {
     padding: 5px;
 }
 
-.disconnected-server {
-    color: red;
-}
-
-.image-button {
-    border: 0 !important;
+.disconnected-image {
+    margin-left: 5px;
+    vertical-align: bottom;
 }
