@@ -25,9 +25,9 @@ declare global {
     }
 }
 
-export interface Channel {
+export interface ServerSelection {
     address: string;
-    name: string;
+    name?: string;
 }
 
 export interface ServerInfo {
@@ -63,7 +63,7 @@ interface Properties { }
 
 interface State {
     serverNames: Array<ServerInfo>;
-    selectedChannel: Channel | null;
+    selectedChannel: ServerSelection | null;
     currentChannelMessages: Array<ClientMessage>;
     hideServerTree: boolean;
     hideUserList: boolean;
@@ -119,32 +119,35 @@ class App extends React.Component<Properties, State> {
     }
 
     private onSendMessage = (text: string) => {
-        const channel = this.state.selectedChannel;
-        if (!channel) {
-            this.writeToCurrentChat("You must be in a channel to send a message");
-            return;
-        }
-
         if (text.startsWith("/"))
             this.sendCommand(text);
-        else
+        else {
+            const channel = this.state.selectedChannel;
+            if (!channel || !channel.name) {
+                this.writeToCurrentChat("You must be in a channel to send a message");
+                return;
+            }
             this.clients.get(channel.address)?.sendMessage(channel.name, text);
+        }
     }
 
-    private onSelectedChannelChanged = (newChannel: Channel) => {
+    private onSelectedChannelChanged = (newChannel: ServerSelection) => {
         const currentChannel = this.state.selectedChannel;
-        if (currentChannel?.address !== newChannel.address || currentChannel.name !== newChannel.name) {
-            const client = this.clients.get(newChannel.address); // should never be null hopefully?
-            const messages = client?.getMessages(newChannel.name) ?? [];
+        let messages: ClientMessage[] = [];
+        const client = this.clients.get(newChannel.address); // should never be null hopefully?
+
+        if (newChannel.name && (currentChannel?.address !== newChannel.address || currentChannel.name !== newChannel.name)) {
+            messages = client?.getMessages(newChannel?.name ?? "") ?? [];
             document.title = newChannel.name + " - Chat Client";
-            this.setState({
-                selectedChannel: newChannel,
-                currentChannelMessages: messages,
-                canSendMessage: client?.isConnected() ?? false
-            });
         }
         else
             document.title = "Chat Client";
+
+        this.setState({
+            selectedChannel: newChannel,
+            currentChannelMessages: messages,
+            canSendMessage: client?.isConnected() ?? false
+        });
     }
 
     private onMessageReceived = (addr: string, channel: string) => {
@@ -160,7 +163,7 @@ class App extends React.Component<Properties, State> {
         // Select the first channel for this server if nothing is selected right now.
         let channel = this.state.selectedChannel;
         let canSendMessage = this.state.canSendMessage;
-        if (!channel && channels.length > 0) { // pick the first channel when we connect for the first time
+        if (!channel?.name && channels.length > 0) { // pick the first channel when we connect for the first time
             channel = { address: addr, name: channels[0] };
             document.title = channels[0] + " - Chat Client";
             canSendMessage = true;
@@ -207,6 +210,7 @@ class App extends React.Component<Properties, State> {
         this.clients.set(address, new Client(props));
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
+            selectedChannel: { address }
         });
     }
 

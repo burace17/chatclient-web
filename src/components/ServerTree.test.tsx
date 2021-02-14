@@ -4,7 +4,7 @@
  
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import ServerTree from "./ServerTree";
-import { Channel, ServerInfo } from "../App";
+import { ServerSelection, ServerInfo } from "../App";
 import Modal from "react-modal";
 
 test("Leave server", () => {
@@ -29,7 +29,7 @@ test("Leave server", () => {
     const onServerAdded = jest.fn();
     const onServerRemoved = jest.fn();
     const onSelectedChannelChanged = jest.fn();
-    const selectedChannel: Channel | null = null;
+    const selectedChannel: ServerSelection | null = null;
     const isHidden = false;
 
     render(<ServerTree connectedServers={servers} selectedChannel={selectedChannel} isHidden={isHidden}
@@ -53,7 +53,7 @@ test("Add server", () => {
     const onServerAdded = jest.fn();
     const onServerRemoved = jest.fn();
     const onSelectedChannelChanged = jest.fn();
-    const selectedChannel: Channel | null = null
+    const selectedChannel: ServerSelection | null = null
     const isHidden = false;
 
     render(<div id="root"><ServerTree connectedServers={servers} selectedChannel={selectedChannel} isHidden={isHidden}

@@ -5,16 +5,16 @@
 import "./ServerTree.css";
 import "./util.css";
 import ServerPropertiesDialog from "./ServerPropertiesDialog";
-import { ServerInfo, Channel } from "../App";
+import { ServerInfo, ServerSelection } from "../App";
 import React from "react";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 
 interface Properties {
     onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => void;
     onServerRemoved: (addr: string) => void;
-    onSelectedChannelChanged: (newChannel: Channel) => void;
+    onSelectedChannelChanged: (newChannel: ServerSelection) => void;
     connectedServers: Array<ServerInfo>;
-    selectedChannel: Channel | null;
+    selectedChannel: ServerSelection | null;
     isHidden: boolean;
 }
 
@@ -107,10 +107,12 @@ class ServerTree extends React.Component<Properties, State> {
     }
 
     private createServer = (info: ServerInfo) => {
+        const selected = info.address === this.props.selectedChannel?.address && !this.props.selectedChannel.name;
+        const className = selected ? "server-name channel-button-selected" : "server-name";
         return (
             <li key={info.address}>
                 <ContextMenuTrigger id={"server_context_trigger_" + info.address}>
-                    <div className="server-name">
+                    <div className={className} onClick={() => this.props.onSelectedChannelChanged({ address: info.address })}>
                         {info.name}
                         {info.isClosed && this.createDisconnectedImage(info.quitReason)}
                     </div>
