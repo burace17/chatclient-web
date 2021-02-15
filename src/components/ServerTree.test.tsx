@@ -13,7 +13,7 @@ test("Leave server", () => {
         username: "username",
         password: "password",
         name: "wss://192.168.0.111:1337",
-        channelNames: [],
+        channels: [],
         isClosed: true
     };
     const server2 = {
@@ -21,7 +21,8 @@ test("Leave server", () => {
         username: "test",
         password: "test",
         name: "Server 2",
-        channelNames: ["#general", "#testing"],
+        channels: [{id: 0, address: "wss://localhost:1337", name: "#general", users: []}, 
+                   {id: 1, address: "wss://localhost:1337", name: "#testing", users: []}],
         isClosed: false
     };
 
