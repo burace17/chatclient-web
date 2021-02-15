@@ -4,14 +4,42 @@
  
 import "./UserList.css";
 import "./util.css";
+import { User, UserStatus } from "../net/client";
+
 interface Properties {
     isHidden: boolean;
+    users: User[]
 }
 
 function UserList(props: Properties) {
-    const name = props.isHidden ? "user-list hidden" : "user-list"
+    const name = props.isHidden ? "scrollbar user-list hidden" : "scrollbar user-list";
+    const addUser = (user: User) => {
+        let className;
+        switch (user.status) {
+            case UserStatus.Online:
+                className = "online-user";
+                break;
+            case UserStatus.Away:
+                className = "away-user";
+                break;
+            case UserStatus.Offline:
+                className = "offline-user";
+                break;
+        }
+
+        return (
+            <li key={user.id}>
+                <span className={className}>{user.nickname}</span>
+            </li>
+        );
+    };
+
     return (
-        <div className={name}>User List</div>
+        <div className={name}>
+            <ul>
+                {props.users.map(addUser)}
+            </ul>
+        </div>
     );
 }
 

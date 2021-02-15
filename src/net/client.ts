@@ -6,7 +6,27 @@ export interface ClientMessage {
     id: number;
     time: number;
     text: string;
-    nickname?: string;
+    user?: User;
+}
+
+export enum UserStatus {
+    Online = "Online",
+    Away = "Away",
+    Offline = "Offline"
+}
+
+export interface User {
+    id: number;
+    username: string;
+    nickname: string;
+    status: UserStatus;
+}
+
+export interface Channel {
+    address: string;
+    id: number;
+    name: string;
+    users: Array<User>
 }
 
 export interface ClientProperties {
@@ -16,16 +36,26 @@ export interface ClientProperties {
     onOpen: (addr: string) => void;
     onClose: (addr: string) => void;
     onMessage: (addr: string, channel: string) => void;
-    onWelcome: (addr: string, channels: Array<string>) => void;
-    onSelfJoin: (addr: string, channel: string) => void;
-    onJoin: (addr: string, channel: string, username: string) => void;
+    onWelcome: (addr: string, channels: Array<Channel>) => void;
+    onJoin: (addr: string, channel: string, user: User) => void;
+    onReceiveChannelInfo: (addr: string, channel: Channel) => void;
+    onUserStatusUpdate: (addr: string, user: User) => void;
+}
+
+function appendAddress(message: any, address: string): Channel {
+    return {
+        address,
+        id: message.id,
+        name: message.name,
+        users: message.users
+    }
 }
 
 class Client {
     private ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
-    private channels: Array<string> = [];
+    private channels: Array<Channel> = [];
     private channelMessages = new Map<string, Array<ClientMessage>>();
     private hasQuit: boolean = false;
     private quitReason: string | undefined;
@@ -88,6 +118,12 @@ class Client {
             case "JOIN": 
                 this.handleJoin(message);
                 break;
+            case "STATUS":
+                this.handleStatusUpdate(message);
+                break;
+            case "CHANNELINFO":
+                this.handleChannelInfo(message);
+                break;
             default:
                 console.log("Got message with unknown command: " + evt.data);
                 break;
@@ -96,9 +132,9 @@ class Client {
 
     private handleWelcome = (message: any) => {
         this.serverName = message.name;
-        this.channels = message.channels;
+        this.channels = message.channels.map((chan: any) => appendAddress(chan, this.props.address));
         for (const channel of this.channels) {
-            this.channelMessages.set(channel, []);
+            this.channelMessages.set(channel.name, []);
         }
 
         this.props.onWelcome(this.props.address, this.channels);
@@ -110,21 +146,25 @@ class Client {
             id: message.message_id,
             text: message.content,
             time: message.time,
-            nickname: message.user.nickname
+            user: message.user
         });
         this.props.onMessage(this.props.address, message.channel);
     }
 
     private handleJoin = (message: any) => {
         const user = message.user;
-        if (user.username === this.props.username) {
-            this.channels.push(message.channel);
-            this.channelMessages.set(message.channel, []);
-            this.props.onSelfJoin(this.props.address, message.channel);
-        }
-        else {
-            this.props.onJoin(this.props.address, message.channel, user.username);
-        }
+        this.props.onJoin(this.props.address, message.channel, user);
+    }
+
+    private handleStatusUpdate = (message: any) => {
+        this.props.onUserStatusUpdate(this.props.address, message.user);
+    }
+
+    private handleChannelInfo = (message: any) => {
+        const channel = appendAddress(message.channel, this.props.address);
+        this.channels.push(channel);
+        this.channelMessages.set(channel.name, []);
+        this.props.onReceiveChannelInfo(this.props.address, channel);
     }
 
     getProps() {
@@ -139,8 +179,8 @@ class Client {
         return this.channels;
     }
 
-    getMessages(channel: string) {
-        return this.channelMessages.get(channel);
+    getMessages(channel: Channel) {
+        return this.channelMessages.get(channel.name);
     }
 
     isConnected() {
@@ -160,6 +200,9 @@ class Client {
     }
 
     sendMessage(channel: string, text: string) {
+        if (text.length === 0)
+            return;
+
         const packet = {
             "cmd": "MSG",
             "channel": channel,

@@ -9,7 +9,7 @@ import ServerTree from "./components/ServerTree";
 import Chat from "./components/Chat";
 import UserList from "./components/UserList";
 import Client from "./net/client";
-import { ClientMessage, ClientProperties } from "./net/client";
+import { ClientMessage, ClientProperties, User, Channel } from "./net/client";
 
 function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
     let arr = [];
@@ -25,9 +25,8 @@ declare global {
     }
 }
 
-export interface ServerSelection {
+interface Server {
     address: string;
-    name?: string;
 }
 
 export interface ServerInfo {
@@ -35,10 +34,24 @@ export interface ServerInfo {
     username: string;
     password: string;
     name: string;
-    channelNames: Array<string>;
+    channels: Channel[];
     isClosed: boolean;
     quitReason?: string;
     quitCode?: number;
+}
+
+interface Properties { }
+
+export type ServerSelection = Server | Channel | null;
+
+interface State {
+    serverNames: Array<ServerInfo>;
+    selectedTreeItem: ServerSelection;
+    currentChannelMessages: Array<ClientMessage>;
+    currentChannelUsers: Array<User>;
+    hideServerTree: boolean;
+    hideUserList: boolean;
+    canSendMessage: boolean;
 }
 
 function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
@@ -51,23 +64,12 @@ function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
             username: client.getProps().username,
             password: client.getProps().password,
             name: name,
-            channelNames: channels,
+            channels: channels,
             isClosed: client.isClosingOrClosed(),
             quitReason: client.getQuitReason(),
             quitCode: client.getQuitCode()
         };
     });
-}
-
-interface Properties { }
-
-interface State {
-    serverNames: Array<ServerInfo>;
-    selectedChannel: ServerSelection | null;
-    currentChannelMessages: Array<ClientMessage>;
-    hideServerTree: boolean;
-    hideUserList: boolean;
-    canSendMessage: boolean;
 }
 
 class App extends React.Component<Properties, State> {
@@ -76,8 +78,9 @@ class App extends React.Component<Properties, State> {
         super(props);
         this.state = {
             serverNames: [],
-            selectedChannel: null,
+            selectedTreeItem: null,
             currentChannelMessages: [],
+            currentChannelUsers: [],
             hideServerTree: false,
             hideUserList: false,
             canSendMessage: false,
@@ -86,6 +89,17 @@ class App extends React.Component<Properties, State> {
 
     async componentDidMount() {
         await this.getStoredServers();
+    }
+
+    private getStoredServers = async () => {
+        if (window.credentialManager) {
+            // TODO: Make this type safe
+            const data = await window.credentialManager.getStoredServers();
+            for (const server of data) {
+                const password = await window.credentialManager.getStoredPassword(server.address, server.username);
+                this.onServerAdded(server.address, server.username, password, false);
+            }
+        }
     }
 
     private writeToCurrentChat = (text: string) => {
@@ -102,7 +116,7 @@ class App extends React.Component<Properties, State> {
     }
 
     private sendCommand = (text: string) => {
-        const channel = this.state.selectedChannel;
+        const channel = this.state.selectedTreeItem;
         if (!channel) {
             this.writeToCurrentChat("Need to be connected to a server to send a command");
             return;
@@ -122,8 +136,8 @@ class App extends React.Component<Properties, State> {
         if (text.startsWith("/"))
             this.sendCommand(text);
         else {
-            const channel = this.state.selectedChannel;
-            if (!channel || !channel.name) {
+            const channel = this.state.selectedTreeItem as Channel;
+            if (!channel.name) {
                 this.writeToCurrentChat("You must be in a channel to send a message");
                 return;
             }
@@ -131,41 +145,44 @@ class App extends React.Component<Properties, State> {
         }
     }
 
-    private onSelectedChannelChanged = (newChannel: ServerSelection) => {
-        const currentChannel = this.state.selectedChannel;
+    private onTreeSelectionChanged = (newSelection: ServerSelection) => {
         let messages: ClientMessage[] = [];
-        const client = this.clients.get(newChannel.address); // should never be null hopefully?
+        let users: User[] = [];
+        const newChannel = newSelection as Channel;
+        const client = this.clients.get(newChannel.address);
 
-        if (newChannel.name && (currentChannel?.address !== newChannel.address || currentChannel.name !== newChannel.name)) {
-            messages = client?.getMessages(newChannel?.name ?? "") ?? [];
+        if (newChannel.name) {
+            messages = client?.getMessages(newChannel) ?? [];
+            users = newChannel.users;
             document.title = newChannel.name + " - Chat Client";
         }
         else
             document.title = "Chat Client";
 
         this.setState({
-            selectedChannel: newChannel,
+            selectedTreeItem: newChannel,
             currentChannelMessages: messages,
+            currentChannelUsers: users,
             canSendMessage: client?.isConnected() ?? false
         });
     }
 
     private onMessageReceived = (addr: string, channel: string) => {
-        const currentChannel = this.state.selectedChannel;
-        if (addr === currentChannel?.address && channel === currentChannel.name) {
-            const messages = this.clients.get(addr)?.getMessages(channel);
+        const currentChannel = this.state.selectedTreeItem as Channel;
+        if (addr === currentChannel.address && channel === currentChannel.name) {
+            const messages = this.clients.get(addr)?.getMessages(currentChannel);
             if (messages)
                 this.setState({ currentChannelMessages: messages });
         }
     }
 
-    private onWelcome = (addr: string, channels: Array<string>) => {
+    private onWelcome = (addr: string, channels: Array<Channel>) => {
         // Select the first channel for this server if nothing is selected right now.
-        let channel = this.state.selectedChannel;
+        let channel = this.state.selectedTreeItem as Channel;
         let canSendMessage = this.state.canSendMessage;
-        if (!channel?.name && channels.length > 0) { // pick the first channel when we connect for the first time
-            channel = { address: addr, name: channels[0] };
-            document.title = channels[0] + " - Chat Client";
+        if (!channel.name && channels.length > 0) { // pick the first channel when we connect for the first time
+            channel = channels[0];
+            document.title = channels[0].name + " - Chat Client";
             canSendMessage = true;
         }
         else if (channel && channel.address === addr) {
@@ -174,8 +191,9 @@ class App extends React.Component<Properties, State> {
 
         this.setState({ 
             serverNames: getNamesAndAddresses(this.clients),
-            selectedChannel: channel,
-            canSendMessage
+            selectedTreeItem: channel,
+            canSendMessage,
+            currentChannelUsers: channel.users
         });
     }
 
@@ -199,8 +217,9 @@ class App extends React.Component<Properties, State> {
             onClose: this.onConnectionClose,
             onMessage: this.onMessageReceived,
             onWelcome: this.onWelcome,
-            onJoin: (addr, channel, username) => {},
-            onSelfJoin: this.onSelfJoin,
+            onJoin: this.onJoin,
+            onReceiveChannelInfo: this.onReceiveChannelInfo,
+            onUserStatusUpdate: this.onUserStatusUpdate
         };
 
         if (persist && window.credentialManager) {
@@ -210,7 +229,7 @@ class App extends React.Component<Properties, State> {
         this.clients.set(address, new Client(props));
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
-            selectedChannel: { address }
+            selectedTreeItem: { address }
         });
     }
 
@@ -218,7 +237,7 @@ class App extends React.Component<Properties, State> {
         this.setState(state => {
             return {
                 serverNames: getNamesAndAddresses(this.clients),
-                canSendMessage: state.selectedChannel?.address !== address
+                canSendMessage: state.selectedTreeItem?.address !== address
             };
         });
     }
@@ -239,17 +258,6 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private getStoredServers = async () => {
-        if (window.credentialManager) {
-            // TODO: Make this type safe
-            const data = await window.credentialManager.getStoredServers();
-            for (const server of data) {
-                const password = await window.credentialManager.getStoredPassword(server.address, server.username);
-                this.onServerAdded(server.address, server.username, password, false);
-            }
-        }
-    }
-
     private onServerRemoved = async (addr: string) => {
         const client = this.clients.get(addr);
         if (client) {
@@ -262,30 +270,38 @@ class App extends React.Component<Properties, State> {
 
             this.setState({
                 serverNames: getNamesAndAddresses(this.clients),
-                selectedChannel: null
+                selectedTreeItem: null
             });
         }
     }
 
-    private onSelfJoin = (addr: string, channel: string) => {
+    private onJoin = (addr: string, channel: string, user: User) => {
+
+    }
+
+    private onUserStatusUpdate = (addr: string, user: User) => {
+
+    }
+
+    private onReceiveChannelInfo = (addr: string, channel: Channel) => {
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
         });
-        this.onSelectedChannelChanged({address: addr, name: channel});
+        this.onTreeSelectionChanged(channel);
     }
 
     render() {
         return (
             <div className="App">
-                <Header channel={this.state.selectedChannel?.name ?? ""} onToggleServerTree={this.onToggleServerTree} 
+                <Header channel={(this.state.selectedTreeItem as Channel)?.name ?? ""} onToggleServerTree={this.onToggleServerTree} 
                         onToggleUserList={this.onToggleUserList} />
                 <div className="App-container">
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
-                        selectedChannel={this.state.selectedChannel} onSelectedChannelChanged={this.onSelectedChannelChanged}
+                        selectedChannel={this.state.selectedTreeItem} onSelectedChannelChanged={this.onTreeSelectionChanged}
                         isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
                     <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage}
                         canSendMessage={this.state.canSendMessage} />
-                    <UserList isHidden={this.state.hideUserList} />
+                    <UserList isHidden={this.state.hideUserList} users={this.state.currentChannelUsers} />
                 </div>
             </div>
         );

@@ -8,6 +8,7 @@ import ServerPropertiesDialog from "./ServerPropertiesDialog";
 import { ServerInfo, ServerSelection } from "../App";
 import React from "react";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
+import { Channel } from "../net/client";
 
 interface Properties {
     onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => void;
@@ -88,18 +89,19 @@ class ServerTree extends React.Component<Properties, State> {
         this.props.onServerAdded(info.address, info.username, info.password, true);
     }
 
-    private createChannel = (serverAddress: string, name: string) => {
-        const selected = serverAddress === this.props.selectedChannel?.address && name === this.props.selectedChannel.name;
+    private createChannel = (channel: Channel) => {
+        const selectedChannel = this.props.selectedChannel as Channel;
+        const selected = channel.address === selectedChannel?.address && channel.name === selectedChannel.name;
         const className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
 
         return (
-            <li key={name}>
-                <ContextMenuTrigger id={"channel_context_trigger_" + serverAddress + name}>
-                    <button className={className} onClick={() => this.props.onSelectedChannelChanged({ address: serverAddress, name })}>
-                        {name}
+            <li key={channel.name}>
+                <ContextMenuTrigger id={"channel_context_trigger_" + channel.address + channel.name}>
+                    <button className={className} onClick={() => this.props.onSelectedChannelChanged(channel)}>
+                        {channel.name}
                     </button>
                 </ContextMenuTrigger>
-                <ContextMenu id={"channel_context_trigger_" + serverAddress + name} className="context-menu">
+                <ContextMenu id={"channel_context_trigger_" + channel.address + channel.name} className="context-menu">
                     <MenuItem className="context-menu-item">Leave Channel</MenuItem>
                 </ContextMenu>
             </li>
@@ -107,7 +109,8 @@ class ServerTree extends React.Component<Properties, State> {
     }
 
     private createServer = (info: ServerInfo) => {
-        const selected = info.address === this.props.selectedChannel?.address && !this.props.selectedChannel.name;
+        const selectedChannel = this.props.selectedChannel as Channel;
+        const selected = info.address === selectedChannel?.address && !selectedChannel.name;
         const className = selected ? "server-name channel-button-selected" : "server-name";
         return (
             <li key={info.address}>
@@ -118,7 +121,7 @@ class ServerTree extends React.Component<Properties, State> {
                     </div>
                 </ContextMenuTrigger>
                 <ul>
-                    {info.channelNames.map(name => this.createChannel(info.address, name))}
+                    {info.channels.map(this.createChannel)}
                 </ul>
                 <ContextMenu id={"server_context_trigger_" + info.address} className="context-menu">
                     <MenuItem className="context-menu-item">Join Channel</MenuItem>
