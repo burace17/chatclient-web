@@ -279,11 +279,26 @@ class App extends React.Component<Properties, State> {
     }
 
     private onJoin = (addr: string, channel: string, user: User) => {
-
+        if (this.state.selectedTreeItem?.address === addr) {
+            let copy = Array.from(this.state.currentChannelUsers);
+            copy.push(user);
+            this.setState({
+                currentChannelUsers: copy
+            });
+        }
     }
 
     private onUserStatusUpdate = (addr: string, user: User) => {
-
+        if (this.state.selectedTreeItem?.address === addr) {
+            const index = this.state.currentChannelUsers.findIndex(u => u.id === user.id);
+            if (index !== -1) {
+                let copy = Array.from(this.state.currentChannelUsers);
+                copy[index].status = user.status;
+                this.setState({
+                    currentChannelUsers: copy
+                });
+            }
+        }
     }
 
     private onReceiveChannelInfo = (addr: string, channel: Channel) => {

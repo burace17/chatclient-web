@@ -26,7 +26,7 @@ export interface Channel {
     address: string;
     id: number;
     name: string;
-    users: Array<User>
+    users: User[]
 }
 
 export interface ClientProperties {
@@ -36,7 +36,7 @@ export interface ClientProperties {
     onOpen: (addr: string) => void;
     onClose: (addr: string) => void;
     onMessage: (addr: string, channel: string) => void;
-    onWelcome: (addr: string, channels: Array<Channel>) => void;
+    onWelcome: (addr: string, channels: Channel[]) => void;
     onJoin: (addr: string, channel: string, user: User) => void;
     onReceiveChannelInfo: (addr: string, channel: Channel) => void;
     onUserStatusUpdate: (addr: string, user: User) => void;
@@ -55,8 +55,8 @@ class Client {
     private ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
-    private channels: Array<Channel> = [];
-    private channelMessages = new Map<string, Array<ClientMessage>>();
+    private channels: Channel[] = [];
+    private channelMessages = new Map<string, ClientMessage[]>();
     private hasQuit: boolean = false;
     private quitReason: string | undefined;
     private quitCode: number | undefined;
