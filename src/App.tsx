@@ -124,9 +124,12 @@ class App extends React.Component<Properties, State> {
 
         const client = this.clients.get(channel.address);
         const words = text.split(" ");
-        if (words[0] === "/join" && words.length >= 2) {
+        if (client && words[0] === "/join" && words.length >= 2) {
             const channel = words[1];
-            client?.joinChannel(channel);
+            if (!client.getChannels().some(c => c.name === channel))
+                client.joinChannel(channel);
+            else
+                this.writeToCurrentChat("You are already in " + channel);
         }
         else
             this.writeToCurrentChat("Invalid command: " + text);
