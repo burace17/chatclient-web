@@ -4,11 +4,11 @@
  
 import "./MessageList.css";
 import Message from "./Message";
-import { ClientMessage } from "../net/client";
+import { ClientMessage, compareMessage } from "../net/client";
 import React from "react";
 
 interface Properties {
-    messages: Array<ClientMessage>
+    messages: ClientMessage[]
 }
 
 class MessageList extends React.Component<Properties> {
@@ -29,11 +29,12 @@ class MessageList extends React.Component<Properties> {
         this.scrollToBottom();
     }
 
+    private createMessage = (msg: ClientMessage) => {
+        return <Message key={msg.message_id} id={msg.message_id} time={msg.time} text={msg.content} nickname={msg.nickname} />
+    }
+
     render() {
-        const msgs = this.props.messages.map(msg => {
-            const nickname = msg.user?.nickname;
-            return <Message key={msg.id} id={msg.id} time={msg.time} text={msg.text} nickname={nickname} />
-        });
+        const msgs = this.props.messages.sort(compareMessage).map(this.createMessage);
 
         return (
             <div className="message-list scrollbar">

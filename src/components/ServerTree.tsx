@@ -8,7 +8,7 @@ import ServerPropertiesDialog from "./ServerPropertiesDialog";
 import { ServerInfo, ServerSelection } from "../App";
 import React from "react";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
-import { Channel } from "../net/client";
+import { Channel, compareChannel } from "../net/client";
 
 interface Properties {
     onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => void;
@@ -121,7 +121,7 @@ class ServerTree extends React.Component<Properties, State> {
                     </div>
                 </ContextMenuTrigger>
                 <ul>
-                    {info.channels.map(this.createChannel)}
+                    {info.channels.sort(compareChannel).map(this.createChannel)}
                 </ul>
                 <ContextMenu id={"server_context_trigger_" + info.address} className="context-menu">
                     <MenuItem className="context-menu-item">Join Channel</MenuItem>

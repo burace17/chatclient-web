@@ -106,9 +106,9 @@ class App extends React.Component<Properties, State> {
         this.setState(state => {
             let newState = Array.from(state.currentChannelMessages);
             newState.push({
-                id: Math.random(),
+                message_id: Math.random(),
                 time: Date.now() / 1000,
-                text: text
+                content: text
             });
 
             return { currentChannelMessages: newState };

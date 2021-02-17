@@ -3,10 +3,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
  
 export interface ClientMessage {
-    id: number;
+    message_id: number;
     time: number;
-    text: string;
+    content: string;
     user?: User;
+    nickname?: string;
 }
 
 export enum UserStatus {
@@ -40,6 +41,14 @@ export interface ClientProperties {
     onJoin: (addr: string, channel: string, user: User) => void;
     onReceiveChannelInfo: (addr: string, channel: Channel) => void;
     onUserStatusUpdate: (addr: string, user: User) => void;
+}
+
+export function compareMessage(a: ClientMessage, b: ClientMessage) {
+    return a.time - b.time;
+}
+
+export function compareChannel(a: Channel, b: Channel) {
+    return a.name.localeCompare(b.name);
 }
 
 function appendAddress(message: any, address: string): Channel {
@@ -124,6 +133,9 @@ class Client {
             case "CHANNELINFO":
                 this.handleChannelInfo(message);
                 break;
+            case "HISTORY":
+                this.handleChannelHistory(message);
+                break;
             default:
                 console.log("Got message with unknown command: " + evt.data);
                 break;
@@ -137,16 +149,18 @@ class Client {
             this.channelMessages.set(channel.name, []);
         }
 
+        this.getChannelHistory(this.channels.map(c => c.name));
         this.props.onWelcome(this.props.address, this.channels);
     }
 
     private handleMsg = (message: any) => {
         let msgs = this.channelMessages.get(message.channel);
         msgs?.push({
-            id: message.message_id,
-            text: message.content,
+            message_id: message.message_id,
+            content: message.content,
             time: message.time,
-            user: message.user
+            user: message.user,
+            nickname: message.user.nickname
         });
         this.props.onMessage(this.props.address, message.channel);
     }
@@ -165,6 +179,18 @@ class Client {
         this.channels.push(channel);
         this.channelMessages.set(channel.name, []);
         this.props.onReceiveChannelInfo(this.props.address, channel);
+    }
+
+    private handleChannelHistory = (data: any) => {
+        const messages: { channelName: string, messageList: ClientMessage[]} = data.messages;
+        for (const [channelName, msgList] of Object.entries(messages)) {
+            const existingMessages = this.channelMessages.get(channelName);
+            const messageList = msgList as ClientMessage[];
+            if (existingMessages) {
+                this.channelMessages.set(channelName, messageList.concat(existingMessages));
+                this.props.onMessage(this.props.address, channelName);
+            }
+        }
     }
 
     getProps() {
@@ -216,6 +242,15 @@ class Client {
         const packet = {
             "cmd": "JOIN",
             "name": channel
+        };
+
+        this.ws.send(JSON.stringify(packet));
+    }
+
+    getChannelHistory(channels: string[]) {
+        const packet = {
+            "cmd": "HISTORY",
+            "channels": channels
         };
 
         this.ws.send(JSON.stringify(packet));
