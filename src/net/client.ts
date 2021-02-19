@@ -43,10 +43,6 @@ export interface ClientProperties {
     onUserStatusUpdate: (addr: string, user: User) => void;
 }
 
-export function compareMessage(a: ClientMessage, b: ClientMessage) {
-    return a.time - b.time;
-}
-
 export function compareChannel(a: Channel, b: Channel) {
     return a.name.localeCompare(b.name);
 }
@@ -206,7 +202,7 @@ class Client {
     }
 
     getMessages(channel: Channel) {
-        return this.channelMessages.get(channel.name);
+        return this.channelMessages.get(channel.name) ?? [];
     }
 
     isConnected() {

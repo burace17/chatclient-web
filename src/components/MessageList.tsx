@@ -4,19 +4,27 @@
  
 import "./MessageList.css";
 import Message from "./Message";
-import { ClientMessage, compareMessage } from "../net/client";
+import { ClientMessage } from "../net/client";
 import React from "react";
 
 interface Properties {
     messages: ClientMessage[]
 }
 
-class MessageList extends React.Component<Properties> {
-    private messagesEndRef: React.RefObject<HTMLDivElement>;
+interface State {
+    showTime: boolean;
+}
+
+class MessageList extends React.Component<Properties, State> {
+    private messagesEndRef: React.RefObject<HTMLDivElement> = React.createRef();
+
     constructor(props: Properties) {
         super(props);
-        this.messagesEndRef = React.createRef();
+        this.state = {
+            showTime: true
+        }
     }
+
     scrollToBottom() {
         this.messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
     }
@@ -29,13 +37,27 @@ class MessageList extends React.Component<Properties> {
         this.scrollToBottom();
     }
 
-    private createMessage = (msg: ClientMessage) => {
-        return <Message key={msg.message_id} id={msg.message_id} time={msg.time} text={msg.content} nickname={msg.nickname} />
+    // Groups messages together that came in within a specific interval (in seconds)
+    private groupMessages = (msgs: ClientMessage[], interval: number) => {
+        let groupedMsgs: JSX.Element[] = [];
+        const sortedMsgs = msgs.sort((a, b) => b.time - a.time);
+        while (sortedMsgs.length > 0) {
+            const current = sortedMsgs.pop()!;
+            let additionalLines = [];
+            while (sortedMsgs.length > 0 && sortedMsgs[sortedMsgs.length - 1].time - current.time < interval) {
+                let msg = sortedMsgs.pop()!;
+                additionalLines.push(<Message key={msg.message_id} message={msg} showTime={false}/>);
+            }
+
+            groupedMsgs.push(<Message key={current.message_id} message={current} showTime={true} />);
+            groupedMsgs = groupedMsgs.concat(additionalLines);
+        }
+
+        return groupedMsgs;
     }
 
     render() {
-        const msgs = this.props.messages.sort(compareMessage).map(this.createMessage);
-
+        const msgs = this.groupMessages(Array.from(this.props.messages), 60);
         return (
             <div className="message-list scrollbar">
                 <ul>

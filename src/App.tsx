@@ -246,19 +246,11 @@ class App extends React.Component<Properties, State> {
     }
 
     private onToggleServerTree = () => {
-        this.setState(state => {
-            return {
-                hideServerTree: !state.hideServerTree
-            };
-        });
+        this.setState({ hideServerTree: !this.state.hideServerTree});
     }
 
     private onToggleUserList = () => {
-        this.setState(state => {
-            return {
-                hideUserList: !state.hideUserList
-            };
-        });
+        this.setState({ hideUserList: !this.state.hideUserList});
     }
 
     private onServerRemoved = async (addr: string) => {

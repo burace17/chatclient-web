@@ -1,0 +1,22 @@
+.message {
+    display: flex;
+    flex-direction: column;
+}
+
+@media(hover: hover) and (pointer: fine) {
+    .message:hover {
+        background-color: gray;
+    }
+}
+
+.message-content {
+    flex: auto;
+}
+
+.message-time {
+    align-self: center;
+}
+
+.nickname {
+    color: darkgray;
+}
