@@ -26,7 +26,7 @@ class MessageList extends React.Component<Properties, State> {
     }
 
     scrollToBottom() {
-        this.messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        this.messagesEndRef.current?.scrollIntoView?.({ behavior: "auto" });
     }
 
     componentDidUpdate() {

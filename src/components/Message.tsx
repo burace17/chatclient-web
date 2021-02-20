@@ -24,7 +24,7 @@ function formatTime(time: number) {
         day: "2-digit",
         hour: "numeric",
         minute: "2-digit"
-    }
+    };
 
     return (
         <div className="message-time">
