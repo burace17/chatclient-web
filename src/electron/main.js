@@ -19,8 +19,8 @@ function createWindow() {
         }
     });
 
-    // TODO: I think I will need to change this for release mode.
-    mainWindow.loadURL("http://localhost:3000");
+    // TODO: Temporary local URL until development progresses further
+    mainWindow.loadURL("https://192.168.0.145:3000");
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();

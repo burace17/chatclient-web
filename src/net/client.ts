@@ -36,7 +36,7 @@ export interface ClientProperties {
     password: string;
     onOpen: (addr: string) => void;
     onClose: (addr: string) => void;
-    onMessage: (addr: string, channel: string) => void;
+    onMessage: (addr: string, channel: string, message?: ClientMessage) => void;
     onWelcome: (addr: string, channels: Channel[]) => void;
     onJoin: (addr: string, channel: string, user: User) => void;
     onReceiveChannelInfo: (addr: string, channel: Channel) => void;
@@ -151,14 +151,15 @@ class Client {
 
     private handleMsg = (message: any) => {
         let msgs = this.channelMessages.get(message.channel);
-        msgs?.push({
+        const msg = {
             message_id: message.message_id,
             content: message.content,
             time: message.time,
             user: message.user,
             nickname: message.user.nickname
-        });
-        this.props.onMessage(this.props.address, message.channel);
+        };
+        msgs?.push(msg);
+        this.props.onMessage(this.props.address, message.channel, msg);
     }
 
     private handleJoin = (message: any) => {

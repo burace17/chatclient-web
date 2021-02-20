@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 import React from "react";
 import "./App.css";
 import Header from "./components/Header";
@@ -17,6 +17,21 @@ function map<T, K>(iter: IterableIterator<T>, f: (t: T) => K): Array<K> {
         arr.push(f(item));
     }
     return arr;
+}
+function supportsNotifications() {
+    return "Notification" in window;
+}
+
+async function checkForNotificationPermission() {
+    if (supportsNotifications() && Notification.permission === "default") {
+        await Notification.requestPermission();
+    }
+}
+
+function showNotification(title: string, body: string) {
+    if (supportsNotifications() && Notification.permission === "granted") {
+        new Notification(title, { body });
+    }
 }
 
 declare global {
@@ -45,16 +60,16 @@ interface Properties { }
 export type ServerSelection = Server | Channel | null;
 
 interface State {
-    serverNames: Array<ServerInfo>;
+    serverNames: ServerInfo[];
     selectedTreeItem: ServerSelection;
-    currentChannelMessages: Array<ClientMessage>;
-    currentChannelUsers: Array<User>;
+    currentChannelMessages: ClientMessage[]
+    currentChannelUsers: User[];
     hideServerTree: boolean;
     hideUserList: boolean;
     canSendMessage: boolean;
 }
 
-function getNamesAndAddresses(clients: Map<string, Client>): Array<ServerInfo> {
+function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
     return map(clients.entries(), kv => {
         const [addr, client] = kv;
         const name = client.getServerName();
@@ -89,6 +104,7 @@ class App extends React.Component<Properties, State> {
 
     async componentDidMount() {
         await this.getStoredServers();
+        await checkForNotificationPermission();
     }
 
     private getStoredServers = async () => {
@@ -154,8 +170,8 @@ class App extends React.Component<Properties, State> {
         const newChannel = newSelection as Channel;
         const client = this.clients.get(newChannel.address);
 
-        if (newChannel.name) {
-            messages = client?.getMessages(newChannel) ?? [];
+        if (newChannel.name && client) {
+            messages = client.getMessages(newChannel) ?? [];
             users = newChannel.users;
             document.title = newChannel.name + " - Chat Client";
         }
@@ -170,12 +186,17 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onMessageReceived = (addr: string, channel: string) => {
+    private onMessageReceived = (addr: string, channel: string, message?: ClientMessage) => {
         const currentChannel = this.state.selectedTreeItem as Channel;
         if (addr === currentChannel.address && channel === currentChannel.name) {
-            const messages = this.clients.get(addr)?.getMessages(currentChannel);
+            const client = this.clients.get(addr);
+            if (!client) return;
+
+            const messages = client.getMessages(currentChannel);
             if (messages)
                 this.setState({ currentChannelMessages: messages });
+            if (message && message.user && message.user.username !== client.getProps().username)
+                showNotification(`${message.user.username} (${channel})`, message.content);
         }
     }
 
@@ -192,7 +213,7 @@ class App extends React.Component<Properties, State> {
             canSendMessage = true; // reconnected to the current server.
         }
 
-        this.setState({ 
+        this.setState({
             serverNames: getNamesAndAddresses(this.clients),
             selectedTreeItem: channel,
             canSendMessage,
@@ -200,7 +221,7 @@ class App extends React.Component<Properties, State> {
         });
     }
 
-    private onServerAdded = async (address: string | undefined, username: string | undefined, password: string | undefined, 
+    private onServerAdded = async (address: string | undefined, username: string | undefined, password: string | undefined,
         persist: boolean) => {
         if (!address || !username || !password) {
             this.writeToCurrentChat("Could not add server");
@@ -246,11 +267,11 @@ class App extends React.Component<Properties, State> {
     }
 
     private onToggleServerTree = () => {
-        this.setState({ hideServerTree: !this.state.hideServerTree});
+        this.setState({ hideServerTree: !this.state.hideServerTree });
     }
 
     private onToggleUserList = () => {
-        this.setState({ hideUserList: !this.state.hideUserList});
+        this.setState({ hideUserList: !this.state.hideUserList });
     }
 
     private onServerRemoved = async (addr: string) => {
@@ -303,8 +324,8 @@ class App extends React.Component<Properties, State> {
     render() {
         return (
             <div className="App">
-                <Header channel={(this.state.selectedTreeItem as Channel)?.name ?? ""} onToggleServerTree={this.onToggleServerTree} 
-                        onToggleUserList={this.onToggleUserList} />
+                <Header channel={(this.state.selectedTreeItem as Channel)?.name ?? ""} onToggleServerTree={this.onToggleServerTree}
+                    onToggleUserList={this.onToggleUserList} />
                 <div className="App-container">
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
                         selectedChannel={this.state.selectedTreeItem} onSelectedChannelChanged={this.onTreeSelectionChanged}
