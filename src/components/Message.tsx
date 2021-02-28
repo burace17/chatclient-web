@@ -17,8 +17,8 @@ function formatTime(time: number) {
     const sameDay = now.getDate() === date.getDate()
                  && now.getMonth() === date.getMonth()
                  && now.getFullYear() === date.getFullYear();
-    const timeOptions = { hour: "numeric", minute: "2-digit" };
-    const dateOptions = {
+    const timeOptions: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
+    const dateOptions: Intl.DateTimeFormatOptions = {
         year: "2-digit",
         month: "2-digit",
         day: "2-digit",

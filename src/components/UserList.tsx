@@ -26,7 +26,7 @@ function addUser(user: User) {
     }
 
     return (
-        <li key={user.id}>
+        <li key={"ul- " + user.id}>
             <span className={className}>{user.nickname}</span>
         </li>
     );
@@ -43,7 +43,6 @@ function compareUser(a: User, b: User) {
 
 function UserList(props: Properties) {
     const name = props.isHidden ? "scrollbar user-list hidden" : "scrollbar user-list";
-
     return (
         <div className={name}>
             <ul>

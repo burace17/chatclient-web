@@ -53,6 +53,7 @@ export interface ServerInfo {
     isClosed: boolean;
     quitReason?: string;
     quitCode?: number;
+    channelsWithUnreadMessages: Channel[];
 }
 
 interface Properties { }
@@ -82,7 +83,8 @@ function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
             channels: channels,
             isClosed: client.isClosingOrClosed(),
             quitReason: client.getQuitReason(),
-            quitCode: client.getQuitCode()
+            quitCode: client.getQuitCode(),
+            channelsWithUnreadMessages: channels.filter(c => client.hasUnreadMessages(c))
         };
     });
 }
@@ -105,6 +107,13 @@ class App extends React.Component<Properties, State> {
     async componentDidMount() {
         await this.getStoredServers();
         await checkForNotificationPermission();
+        window.addEventListener("focus", this.onWindowGotFocus);
+        window.addEventListener("blur", this.onWindowLostFocus);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("focus", this.onWindowGotFocus);
+        window.removeEventListener("blur", this.onWindowLostFocus);
     }
 
     private getStoredServers = async () => {
@@ -151,6 +160,25 @@ class App extends React.Component<Properties, State> {
             this.writeToCurrentChat("Invalid command: " + text);
     }
 
+    private onWindowGotFocus = () => {
+        console.log("Window got focus");
+        const channel = this.state.selectedTreeItem as Channel;
+        const client = this.clients.get(channel.address);
+        if (client && channel.name)
+            client.notifyViewingChannel(channel.name);
+        // In the future, we should check that the last message is actually in view.
+        // Right now it always should be since we are still scrolling the page even when the document is hidden.
+        // But I think we will want to stop doing that?
+    }
+
+    private onWindowLostFocus = () => {
+        console.log("Window lost focus");
+        const channel = this.state.selectedTreeItem as Channel;
+        const client = this.clients.get(channel.address);
+        if (client)
+            client.notifyNotViewingChannels();
+    }
+
     private onSendMessage = (text: string) => {
         if (text.startsWith("/"))
             this.sendCommand(text);
@@ -170,13 +198,20 @@ class App extends React.Component<Properties, State> {
         const newChannel = newSelection as Channel;
         const client = this.clients.get(newChannel.address);
 
+        const oldClient = this.clients.get(this.state.selectedTreeItem?.address ?? "");
+        if (oldClient && oldClient !== client)
+            oldClient.notifyNotViewingChannels();
+
         if (newChannel.name && client) {
             messages = client.getMessages(newChannel) ?? [];
             users = newChannel.users;
             document.title = newChannel.name + " - Chat Client";
+            client.notifyViewingChannel(newChannel.name);
         }
-        else
+        else {
             document.title = "Chat Client";
+            client?.notifyNotViewingChannels();
+        }
 
         this.setState({
             selectedTreeItem: newChannel,
@@ -188,15 +223,20 @@ class App extends React.Component<Properties, State> {
 
     private onMessageReceived = (addr: string, channel: string, message?: ClientMessage) => {
         const currentChannel = this.state.selectedTreeItem as Channel;
-        if (addr === currentChannel.address && channel === currentChannel.name) {
-            const client = this.clients.get(addr);
-            if (!client) return;
+        const client = this.clients.get(addr);
+        if (!client) return;
 
+        const isChannelActive = addr === currentChannel.address && channel === currentChannel.name;
+        if (isChannelActive) {
             const messages = client.getMessages(currentChannel);
-            if (messages)
-                this.setState({ currentChannelMessages: messages });
-            if (message && message.user && message.user.username !== client.getProps().username)
-                showNotification(`${message.user.username} (${channel})`, message.content);
+            this.setState({ currentChannelMessages: messages });
+        }
+        else {
+            this.setState({ serverNames: getNamesAndAddresses(this.clients) });
+        }
+
+        if (!client.isBeingViewed(currentChannel) && message && message.user && message.user.username !== client.getProps().username) {
+            showNotification(`${message.user.username} (${channel})`, message.content);
         }
     }
 
@@ -205,9 +245,7 @@ class App extends React.Component<Properties, State> {
         let channel = this.state.selectedTreeItem as Channel;
         let canSendMessage = this.state.canSendMessage;
         if (!channel.name && channels.length > 0) { // pick the first channel when we connect for the first time
-            channel = channels[0];
-            document.title = channels[0].name + " - Chat Client";
-            canSendMessage = true;
+            this.onTreeSelectionChanged(channel);
         }
         else if (channel && channel.address === addr) {
             canSendMessage = true; // reconnected to the current server.
@@ -217,7 +255,7 @@ class App extends React.Component<Properties, State> {
             serverNames: getNamesAndAddresses(this.clients),
             selectedTreeItem: channel,
             canSendMessage,
-            currentChannelUsers: channel.users
+            currentChannelUsers: channel.users ?? []
         });
     }
 
@@ -243,7 +281,8 @@ class App extends React.Component<Properties, State> {
             onWelcome: this.onWelcome,
             onJoin: this.onJoin,
             onReceiveChannelInfo: this.onReceiveChannelInfo,
-            onUserStatusUpdate: this.onUserStatusUpdate
+            onUserStatusUpdate: this.onUserStatusUpdate,
+            onChannelBeingViewed: () => this.setState({ serverNames: getNamesAndAddresses(this.clients) })
         };
 
         if (persist && window.credentialManager) {

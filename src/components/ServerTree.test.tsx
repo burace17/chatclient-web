@@ -14,7 +14,8 @@ test("Leave server", () => {
         password: "password",
         name: "wss://192.168.0.111:1337",
         channels: [],
-        isClosed: true
+        isClosed: true,
+        channelsWithUnreadMessages: []
     };
     const server2 = {
         address: "wss://localhost:1337",
@@ -23,7 +24,8 @@ test("Leave server", () => {
         name: "Server 2",
         channels: [{id: 0, address: "wss://localhost:1337", name: "#general", users: []}, 
                    {id: 1, address: "wss://localhost:1337", name: "#testing", users: []}],
-        isClosed: false
+        isClosed: false,
+        channelsWithUnreadMessages: []
     };
 
     let servers = [server1, server2];

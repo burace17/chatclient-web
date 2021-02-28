@@ -42,6 +42,10 @@ ul {
     background-color: #464746;
 }
 
+.channel-button-unread {
+    color: blue;
+}
+
 .server-name {
     padding-bottom: 8px;
     padding-top: 8px;

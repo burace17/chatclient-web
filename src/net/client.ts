@@ -41,6 +41,7 @@ export interface ClientProperties {
     onJoin: (addr: string, channel: string, user: User) => void;
     onReceiveChannelInfo: (addr: string, channel: Channel) => void;
     onUserStatusUpdate: (addr: string, user: User) => void;
+    onChannelBeingViewed: () => void;
 }
 
 export function compareChannel(a: Channel, b: Channel) {
@@ -62,6 +63,8 @@ class Client {
     private serverName: string;
     private channels: Channel[] = [];
     private channelMessages = new Map<string, ClientMessage[]>();
+    private lastRead = new Map<string, number | null>();
+    private channelsBeingViewed = new Set<string>();
     private hasQuit: boolean = false;
     private quitReason: string | undefined;
     private quitCode: number | undefined;
@@ -132,6 +135,12 @@ class Client {
             case "HISTORY":
                 this.handleChannelHistory(message);
                 break;
+            case "HASVIEWERS":
+                this.handleGotViewer(message);
+                break;
+            case "NOVIEWERS":
+                this.handleNoViewers(message);
+                break;
             default:
                 console.log("Got message with unknown command: " + evt.data);
                 break;
@@ -143,6 +152,12 @@ class Client {
         this.channels = message.channels.map((chan: any) => appendAddress(chan, this.props.address));
         for (const channel of this.channels) {
             this.channelMessages.set(channel.name, []);
+            this.lastRead.set(channel.name, null);
+        }
+
+        this.channelsBeingViewed.clear();
+        for (const channel of message.viewing) {
+            this.channelsBeingViewed.add(channel);
         }
 
         this.getChannelHistory(this.channels.map(c => c.name));
@@ -179,15 +194,41 @@ class Client {
     }
 
     private handleChannelHistory = (data: any) => {
-        const messages: { channelName: string, messageList: ClientMessage[]} = data.messages;
-        for (const [channelName, msgList] of Object.entries(messages)) {
+        interface ChannelHistoryEntry {
+            last_read_message: number | null,
+            messages: ClientMessage[]
+        };
+        interface ChannelHistory {
+            channelName: string,
+            entry: ChannelHistoryEntry
+        };
+
+        const messages: ChannelHistory = data.messages;
+        for (const [channelName, value] of Object.entries(messages)) {
             const existingMessages = this.channelMessages.get(channelName);
-            const messageList = msgList as ClientMessage[];
+            const entry = value as ChannelHistoryEntry;
+            const messageList = entry.messages;
             if (existingMessages) {
-                this.channelMessages.set(channelName, messageList.concat(existingMessages));
+                this.channelMessages.set(channelName, messageList.concat(existingMessages).sort((a,b) => a.time - b.time));
+                this.lastRead.set(channelName, entry.last_read_message);
+                //console.log(`history: ${channelName} last read message was ${entry.last_read_message}`);
                 this.props.onMessage(this.props.address, channelName);
             }
         }
+    }
+
+    private handleGotViewer = (data: any) => {
+        const channel = data.channel;
+        //console.log("handleGotViewer(): " + channel + " is being viewed");
+        this.lastRead.set(channel, null);
+        this.channelsBeingViewed.add(channel);
+        this.props.onChannelBeingViewed();
+    }
+
+    private handleNoViewers = (data: any) => {
+        //console.log("handleNoViewers(): " + data.channel + " is no longer being viewed");
+        this.lastRead.set(data.channel, data.message_id);
+        this.channelsBeingViewed.delete(data.channel);
     }
 
     getProps() {
@@ -222,6 +263,26 @@ class Client {
         return this.quitReason;
     }
 
+    isBeingViewed(channel: Channel) {
+        return this.channelsBeingViewed.has(channel.name);
+    }
+
+    private getLastMessageId = (channel: Channel) => {
+        const messages = this.getMessages(channel);
+        if (messages.length > 0)
+            return messages[messages.length - 1].message_id;
+        else
+            return null;
+    }
+
+    hasUnreadMessages(channel: Channel) {
+        const lastReadMessage = this.lastRead.get(channel.name) ?? null;
+        const lastMessageId = this.getLastMessageId(channel);
+        const isBeingViewed = this.isBeingViewed(channel);
+
+        return !isBeingViewed && lastReadMessage !== lastMessageId;
+    }
+
     sendMessage(channel: string, text: string) {
         if (text.length === 0)
             return;
@@ -248,6 +309,23 @@ class Client {
         const packet = {
             "cmd": "HISTORY",
             "channels": channels
+        };
+
+        this.ws.send(JSON.stringify(packet));
+    }
+
+    notifyViewingChannel(channel: string) {
+        const packet = {
+            "cmd": "VIEWING",
+            "channel": channel
+        };
+
+        this.ws.send(JSON.stringify(packet));
+    }
+
+    notifyNotViewingChannels() {
+        const packet = {
+            "cmd": "NOTVIEWING",
         };
 
         this.ws.send(JSON.stringify(packet));

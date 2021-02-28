@@ -14,7 +14,7 @@ interface Properties {
     onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => void;
     onServerRemoved: (addr: string) => void;
     onSelectedChannelChanged: (newChannel: ServerSelection) => void;
-    connectedServers: Array<ServerInfo>;
+    connectedServers: ServerInfo[];
     selectedChannel: ServerSelection | null;
     isHidden: boolean;
 }
@@ -89,10 +89,12 @@ class ServerTree extends React.Component<Properties, State> {
         this.props.onServerAdded(info.address, info.username, info.password, true);
     }
 
-    private createChannel = (channel: Channel) => {
+    private createChannel = (channel: Channel, info: ServerInfo) => {
         const selectedChannel = this.props.selectedChannel as Channel;
         const selected = channel.address === selectedChannel?.address && channel.name === selectedChannel.name;
-        const className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
+        let className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
+        if (info.channelsWithUnreadMessages.includes(channel))
+            className += " channel-button-unread";
 
         return (
             <li key={channel.name}>
@@ -121,7 +123,7 @@ class ServerTree extends React.Component<Properties, State> {
                     </div>
                 </ContextMenuTrigger>
                 <ul>
-                    {info.channels.sort(compareChannel).map(this.createChannel)}
+                    {info.channels.sort(compareChannel).map(c => this.createChannel(c, info))}
                 </ul>
                 <ContextMenu id={"server_context_trigger_" + info.address} className="context-menu">
                     <MenuItem className="context-menu-item">Join Channel</MenuItem>
