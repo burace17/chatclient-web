@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
  
 // Modules to control application life and create native browser window
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, shell } = require("electron");
 const path = require("path");
 const credentialManager = require("./credential-manager");
 
@@ -24,6 +24,14 @@ function createWindow() {
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
+
+    // For some reason .setWindowOpenHandler does not work here?
+    mainWindow.webContents.on("new-window", (e, targetUrlString) => {
+        e.preventDefault();
+        const targetUrl = new URL(targetUrlString);
+        if (targetUrl.protocol === "http:" || targetUrl.protocol === "https:")
+            shell.openExternal(targetUrlString);
+    });
 
     mainWindow.maximize();
 }

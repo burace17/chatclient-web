@@ -54,7 +54,7 @@ function appendAddress(message: any, address: string): Channel {
         id: message.id,
         name: message.name,
         users: message.users
-    }
+    };
 }
 
 class Client {

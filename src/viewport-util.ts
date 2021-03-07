@@ -6,7 +6,7 @@ function createTestElement(): HTMLElement {
   const testElement: HTMLElement = document.createElement("div");
   testElement.style.cssText = "position: fixed; top: 0; height: 100vh; pointer-events: none;";
   document.documentElement.insertBefore(testElement, document.documentElement.firstChild);
-  return testElement
+  return testElement;
 }
 
 function removeTestElement(element: HTMLElement) {
@@ -14,7 +14,7 @@ function removeTestElement(element: HTMLElement) {
 }
 
 function checkSizes() {
-  const vhTest = createTestElement()
+  const vhTest = createTestElement();
   const windowHeight = window.visualViewport.height;
   const vh = vhTest.offsetHeight;
   const offset = vh - windowHeight;

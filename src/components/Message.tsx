@@ -4,6 +4,8 @@
 
 import React from "react";
 import { ClientMessage } from "../net/client";
+import urlRegex from "url-regex-safe";
+import replaceToArray from "string-replace-to-array";
 import "./Message.css";
 
 interface Properties {
@@ -11,37 +13,45 @@ interface Properties {
     showTime: boolean;
 }
 
-function formatTime(time: number) {
-    const date = new Date(time * 1000);
-    const now = new Date();
-    const sameDay = now.getDate() === date.getDate()
-                 && now.getMonth() === date.getMonth()
-                 && now.getFullYear() === date.getFullYear();
-    const timeOptions: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
-    const dateOptions: Intl.DateTimeFormatOptions = {
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "numeric",
-        minute: "2-digit"
-    };
-
-    return (
-        <div className="message-time">
-            {sameDay ? date.toLocaleTimeString([], timeOptions) : date.toLocaleString([], dateOptions)}
-        </div>
-    );
-}
-
 export default class Message extends React.Component<Properties> {
+    private formatTime = (time: number) => {
+        const date = new Date(time * 1000);
+        const now = new Date();
+        const sameDay = now.getDate() === date.getDate()
+                    && now.getMonth() === date.getMonth()
+                    && now.getFullYear() === date.getFullYear();
+        const timeOptions: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
+        const dateOptions: Intl.DateTimeFormatOptions = {
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "numeric",
+            minute: "2-digit"
+        };
+
+        return (
+            <div className="message-time">
+                {sameDay ? date.toLocaleTimeString([], timeOptions) : date.toLocaleString([], dateOptions)}
+            </div>
+        );
+    }
+
+    private matcher: RegExp = urlRegex({ strict: true });
+    private formatMessage = (key: number, message: string) => {
+        let parts = replaceToArray(message, this.matcher, (s: string) => {
+            return <a key={key} target="_blank" rel="noreferrer" href={s}>{s}</a>;
+        });
+        return parts;
+    }
+
     render() {
         const msg = this.props.message;
         if (msg.nickname) {
             return (
                 <li key={msg.message_id} className="message">
-                    {this.props.showTime && formatTime(msg.time)}
+                    {this.props.showTime && this.formatTime(msg.time)}
                     <div className="message-content">
-                        <span className="nickname">{msg.nickname}</span>: {msg.content}
+                        <span className="nickname">{msg.nickname}</span>: {this.formatMessage(msg.message_id, msg.content)}
                     </div>
                 </li>
             );

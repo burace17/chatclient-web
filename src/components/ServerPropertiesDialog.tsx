@@ -37,7 +37,7 @@ class ServerPropertiesDialog extends React.Component<Properties, State> {
             username: props.defaultUsername,
             password: props.defaultPassword,
             shouldRegister: false
-        }
+        };
     }
 
     render() {
@@ -54,7 +54,7 @@ class ServerPropertiesDialog extends React.Component<Properties, State> {
             const username = this.state.username ?? this.props.defaultUsername;
             const password = this.state.password ?? this.props.defaultPassword;
             this.props.onCommit(this.state.shouldRegister, fixAddress(address), username, password);
-        }
+        };
         const onServerAddressChanged = (address: string) => this.setState({ serverAddress: address });
         const onUsernameChanged = (username: string) => this.setState({ username });
         const onPasswordChanged = (password: string) => this.setState({ password });

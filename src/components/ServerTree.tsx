@@ -139,7 +139,7 @@ class ServerTree extends React.Component<Properties, State> {
     private createDisconnectedImage = (disconnectInfo?: string) => {
         return (
             <img src="disconnect.svg" alt="Disconnected" className="disconnected-image" title={disconnectInfo} />
-        )
+        );
     }
 
     render() {

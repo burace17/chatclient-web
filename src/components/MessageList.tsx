@@ -22,7 +22,7 @@ class MessageList extends React.Component<Properties, State> {
         super(props);
         this.state = {
             showTime: true
-        }
+        };
     }
 
     scrollToBottom() {

@@ -101,7 +101,7 @@ class App extends React.Component<Properties, State> {
             hideServerTree: false,
             hideUserList: false,
             canSendMessage: false,
-        }
+        };
     }
 
     async componentDidMount() {
