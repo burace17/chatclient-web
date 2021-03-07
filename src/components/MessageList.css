@@ -3,4 +3,5 @@
     list-style-type: none;
     overflow-y: auto;
     overflow-wrap: break-word;
+    width: 100%;
 }
