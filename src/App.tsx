@@ -161,8 +161,10 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWindowGotFocus = () => {
-        console.log("Window got focus");
         const channel = this.state.selectedTreeItem as Channel;
+        if (!channel)
+            return;
+
         const client = this.clients.get(channel.address);
         if (client && channel.name)
             client.notifyViewingChannel(channel.name);
@@ -172,8 +174,10 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWindowLostFocus = () => {
-        console.log("Window lost focus");
         const channel = this.state.selectedTreeItem as Channel;
+        if (!channel)
+            return;
+
         const client = this.clients.get(channel.address);
         if (client)
             client.notifyNotViewingChannels();
