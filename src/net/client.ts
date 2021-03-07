@@ -68,11 +68,19 @@ class Client {
     private hasQuit: boolean = false;
     private quitReason: string | undefined;
     private quitCode: number | undefined;
+    private sendRegistrationFirst: boolean = false;
 
-    constructor(props: ClientProperties) {
+    constructor(props: ClientProperties, shouldRegister: boolean) {
         this.props = props;
         this.serverName = props.address;
+        this.sendRegistrationFirst = shouldRegister;
         this.ws = this.connect();
+    }
+
+    private send = (data: string) => {
+        if (this.isConnected()) {
+            this.ws.send(data);
+        }
     }
 
     private connect = () => {
@@ -85,13 +93,23 @@ class Client {
     }
 
     private socketOnOpen = (_: Event) => {
-        const ident = {
-            "cmd": "IDENT",
-            "username": this.props.username,
-            "password": this.props.password
-        };
+        let packet;
+        if (this.sendRegistrationFirst) {
+            packet = {
+                "cmd": "REGISTER",
+                "username": this.props.username,
+                "password": this.props.password
+            };
+        }
+        else {
+            packet = {
+                "cmd": "IDENT",
+                "username": this.props.username,
+                "password": this.props.password
+            };
+        }
 
-        this.ws.send(JSON.stringify(ident));
+        this.send(JSON.stringify(packet));
         this.props.onOpen(this.props.address);
     }
 
@@ -149,6 +167,7 @@ class Client {
 
     private handleWelcome = (message: any) => {
         this.serverName = message.name;
+        this.sendRegistrationFirst = false;
         this.channels = message.channels.map((chan: any) => appendAddress(chan, this.props.address));
         for (const channel of this.channels) {
             this.channelMessages.set(channel.name, []);
@@ -293,7 +312,7 @@ class Client {
             "content": text
         };
 
-        this.ws.send(JSON.stringify(packet));
+        this.send(JSON.stringify(packet));
     }
 
     joinChannel(channel: string) {
@@ -302,7 +321,7 @@ class Client {
             "name": channel
         };
 
-        this.ws.send(JSON.stringify(packet));
+        this.send(JSON.stringify(packet));
     }
 
     getChannelHistory(channels: string[]) {
@@ -311,7 +330,7 @@ class Client {
             "channels": channels
         };
 
-        this.ws.send(JSON.stringify(packet));
+        this.send(JSON.stringify(packet));
     }
 
     notifyViewingChannel(channel: string) {
@@ -320,7 +339,7 @@ class Client {
             "channel": channel
         };
 
-        this.ws.send(JSON.stringify(packet));
+        this.send(JSON.stringify(packet));
     }
 
     notifyNotViewingChannels() {
@@ -328,7 +347,7 @@ class Client {
             "cmd": "NOTVIEWING",
         };
 
-        this.ws.send(JSON.stringify(packet));
+        this.send(JSON.stringify(packet));
     }
 
     quit() {

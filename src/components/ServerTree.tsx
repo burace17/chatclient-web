@@ -11,7 +11,8 @@ import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
 import { Channel, compareChannel } from "../net/client";
 
 interface Properties {
-    onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, persist: boolean) => void;
+    onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, 
+        persist: boolean, shouldRegister: boolean) => void;
     onServerRemoved: (addr: string) => void;
     onSelectedChannelChanged: (newChannel: ServerSelection) => void;
     connectedServers: ServerInfo[];
@@ -46,9 +47,9 @@ class ServerTree extends React.Component<Properties, State> {
         this.setState({ showAddServer: false });
     }
 
-    private onAddServerCommitted = (address?: string, username?: string, password?: string) => {
+    private onAddServerCommitted = (shouldRegister: boolean, address?: string, username?: string, password?: string) => {
         this.setState({ showAddServer: false });
-        this.props.onServerAdded(address, username, password, true);
+        this.props.onServerAdded(address, username, password, true, shouldRegister);
     }
 
     private showModifyServerDialog = (info: ServerInfo) => {
@@ -70,9 +71,9 @@ class ServerTree extends React.Component<Properties, State> {
         });
     }
 
-    private onModifyServerCommitted = (address?: string, username?: string, password?: string) => {
+    private onModifyServerCommitted = (_: boolean, address?: string, username?: string, password?: string) => {
         this.setState({ showModifyServer: false });
-        this.props.onServerAdded(address, username, password, true);
+        this.props.onServerAdded(address, username, password, true, false);
     }
 
     // TODO: add types..
@@ -86,7 +87,7 @@ class ServerTree extends React.Component<Properties, State> {
 
     private onReconnectClicked = (_: Event, obj: any) => {
         const info: ServerInfo = obj.info;
-        this.props.onServerAdded(info.address, info.username, info.password, true);
+        this.props.onServerAdded(info.address, info.username, info.password, true, false);
     }
 
     private createChannel = (channel: Channel, info: ServerInfo) => {
@@ -152,11 +153,13 @@ class ServerTree extends React.Component<Properties, State> {
                     {servers}
                 </ul>
                 <ServerPropertiesDialog show={this.state.showAddServer} onClose={this.hideAddServerDialog}
-                    onCommit={this.onAddServerCommitted} title="Add Server" okButtonText="Add" />
+                    onCommit={this.onAddServerCommitted} title="Add Server" okButtonText="Add" 
+                    showRegistrationOptions={true} />
                 <ServerPropertiesDialog show={this.state.showModifyServer} onClose={this.hideModifyServerDialog}
                     onCommit={this.onModifyServerCommitted} title="Modify Server" okButtonText="Modify"
                     defaultServerAddress={this.state.modifyServerAddress} defaultUsername={this.state.modifyServerUsername}
-                    defaultPassword={this.state.modifyServerPassword} infoText={this.state.modifyServerInfo} />
+                    defaultPassword={this.state.modifyServerPassword} infoText={this.state.modifyServerInfo} 
+                    showRegistrationOptions={false} />
             </div>
         );
     }

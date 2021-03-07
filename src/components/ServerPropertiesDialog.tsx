@@ -12,18 +12,21 @@ interface Properties {
     title: string;
     okButtonText: string;
     onClose: () => void;
-    onCommit: (address?: string, username?: string, password?: string) => void;
+    onCommit: (shouldRegister: boolean, address?: string, username?: string, password?: string) => void;
     defaultServerAddress?: string;
     defaultUsername?: string;
     defaultPassword?: string;
 
     infoText?: string;
+
+    showRegistrationOptions: boolean;
 }
 
 interface State {
     serverAddress?: string;
     username?: string;
     password?: string;
+    shouldRegister: boolean;
 }
 
 class ServerPropertiesDialog extends React.Component<Properties, State> {
@@ -32,7 +35,8 @@ class ServerPropertiesDialog extends React.Component<Properties, State> {
         this.state = {
             serverAddress: props.defaultServerAddress,
             username: props.defaultUsername,
-            password: props.defaultPassword
+            password: props.defaultPassword,
+            shouldRegister: false
         }
     }
 
@@ -49,11 +53,12 @@ class ServerPropertiesDialog extends React.Component<Properties, State> {
             const address = this.state.serverAddress ?? this.props.defaultServerAddress;
             const username = this.state.username ?? this.props.defaultUsername;
             const password = this.state.password ?? this.props.defaultPassword;
-            this.props.onCommit(fixAddress(address), username, password);
+            this.props.onCommit(this.state.shouldRegister, fixAddress(address), username, password);
         }
         const onServerAddressChanged = (address: string) => this.setState({ serverAddress: address });
         const onUsernameChanged = (username: string) => this.setState({ username });
         const onPasswordChanged = (password: string) => this.setState({ password });
+        const onShouldRegisterChanged = (shouldRegister: boolean) => this.setState({ shouldRegister });
 
         return (
             <ModalDialog isOpen={this.props.show} title={this.props.title} showOkButton={true} showCancelButton={true} 
@@ -61,7 +66,9 @@ class ServerPropertiesDialog extends React.Component<Properties, State> {
                 <span className="text">{this.props.infoText}</span>
                 <ServerProperties onServerAddressChanged={onServerAddressChanged} onUsernameChanged={onUsernameChanged}
                     onPasswordChanged={onPasswordChanged} defaultAddress={this.props.defaultServerAddress}
-                    defaultUsername={this.props.defaultUsername} defaultPassword={this.props.defaultPassword} />
+                    defaultUsername={this.props.defaultUsername} defaultPassword={this.props.defaultPassword}
+                    showRegistrationOptions={this.props.showRegistrationOptions} 
+                    onRegisterOptionChanged={onShouldRegisterChanged} />
             </ModalDialog>
         );
     }

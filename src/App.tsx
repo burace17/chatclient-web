@@ -122,7 +122,7 @@ class App extends React.Component<Properties, State> {
             const data = await window.credentialManager.getStoredServers();
             for (const server of data) {
                 const password = await window.credentialManager.getStoredPassword(server.address, server.username);
-                this.onServerAdded(server.address, server.username, password, false);
+                this.onServerAdded(server.address, server.username, password, false, false);
             }
         }
     }
@@ -186,7 +186,7 @@ class App extends React.Component<Properties, State> {
     private onSendMessage = (text: string) => {
         if (text.startsWith("/"))
             this.sendCommand(text);
-        else {
+        else if (this.state.selectedTreeItem) {
             const channel = this.state.selectedTreeItem as Channel;
             if (!channel.name) {
                 this.writeToCurrentChat("You must be in a channel to send a message");
@@ -264,7 +264,7 @@ class App extends React.Component<Properties, State> {
     }
 
     private onServerAdded = async (address: string | undefined, username: string | undefined, password: string | undefined,
-        persist: boolean) => {
+        persist: boolean, shouldRegister: boolean) => {
         if (!address || !username || !password) {
             this.writeToCurrentChat("Could not add server");
             return;
@@ -293,7 +293,7 @@ class App extends React.Component<Properties, State> {
             await window.credentialManager.storeServerInfo(address, username, password);
         }
 
-        this.clients.set(address, new Client(props));
+        this.clients.set(address, new Client(props, shouldRegister));
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
             selectedTreeItem: { address }
@@ -325,6 +325,14 @@ class App extends React.Component<Properties, State> {
 
             if (window.credentialManager) {
                 await window.credentialManager.removeServerInfo(addr, client.getProps().username);
+            }
+            const selectedChannel = this.state.selectedTreeItem as Channel;
+            if (selectedChannel && selectedChannel.address === addr) {
+                this.setState({
+                    currentChannelMessages: [],
+                    currentChannelUsers: [],
+                    canSendMessage: false
+                });
             }
 
             this.setState({
