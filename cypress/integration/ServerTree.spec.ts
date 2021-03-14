@@ -1,0 +1,54 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+import { Server } from "mock-socket";
+
+describe("Server Tree", () => {
+    let mockServer: Server = undefined;
+
+    beforeEach(() => {
+        let welcomePacket;
+        cy.fixture("serverData").then(packet => {
+            welcomePacket = packet;
+        });
+
+        mockServer?.close();
+        mockServer = new Server("ws://0.0.0.0:1337");
+        mockServer.on("connection", sock => {
+            sock.send(JSON.stringify(welcomePacket));
+        });
+        mockServer.start();
+
+        cy.mockSockets();
+        cy.visit("/").then(() => cy.login());
+    });
+
+    it("sets the active channel", () => {
+        // Click #testing
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button").click();
+        cy.get(".channel-name").should("contain.text", "#testing");
+        cy.get(".user-list").should("contain.text", "testuser");
+        cy.get(".user-list").should("not.contain.text", "otheruser");
+
+        // Click #general
+        cy.get(":nth-child(1) > .react-contextmenu-wrapper > .channel-button").click();
+        cy.get(".channel-name").should("contain.text", "#general");
+        cy.get(".user-list").should("contain.text", "testuser");
+        cy.get(".user-list").should("contain.text", "otheruser");
+    });
+
+    it("allows leaving servers", () => {
+        cy.get("[data-cy=test]").rightclick();
+        cy.get(".react-contextmenu--visible > :nth-child(3)").click();
+        cy.get("[data-cy=test]").should("not.exist");
+    });
+
+    it("allows modifying server properties", () => {
+        cy.get("[data-cy=test]").rightclick();
+        cy.get(".react-contextmenu--visible > :nth-child(4)").click();
+        cy.get(":nth-child(1) > .textbox").clear();
+        cy.get(":nth-child(1) > .textbox").type("e{enter}");
+        cy.get("[data-cy=test]").should("not.exist");
+    });
+});

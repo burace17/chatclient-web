@@ -41,7 +41,9 @@ export default function ModalDialog(props: Properties) {
                 {props.showOkButton && 
                     <button type="submit" className="button" onClick={props.onOkButtonPressed}>{props.okButtonText ?? "OK"}</button>}
                 {props.showCancelButton &&
-                    <button type="button" className="button" onClick={props.onClose}>{props.cancelButtonText ?? "Cancel"}</button>}
+                    <button type="button" className="button" onClick={props.onClose} data-cy="cancel">
+                        {props.cancelButtonText ?? "Cancel"}
+                    </button>}
             </form>
         </Modal>
     );

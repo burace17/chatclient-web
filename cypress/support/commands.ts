@@ -11,11 +11,19 @@ Cypress.Commands.add("mockSockets", () => {
     });
 });
 
-export {}
+// Hacky way of bypassing the login UI.
+Cypress.Commands.add("login", () => {
+    cy.window().then(window => {
+        (window as any).ccTestAppInstance.onServerAdded("ws://0.0.0.0:1337", "test", "test", false, false);
+    });
+});
+
+export { };
 declare global {
     namespace Cypress {
         interface Chainable<Subject> {
             mockSockets(): void;
+            login();
         }
     }
 }

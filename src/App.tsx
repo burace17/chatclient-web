@@ -37,6 +37,7 @@ function showNotification(title: string, body: string) {
 declare global {
     interface Window {
         credentialManager: any;
+        ccTestAppInstance: App;
     }
 }
 
@@ -102,6 +103,10 @@ class App extends React.Component<Properties, State> {
             hideUserList: false,
             canSendMessage: false,
         };
+
+        // Hack to allow tests to access the instance of this component
+        // Please do not use anywhere else!
+        window.ccTestAppInstance = this;
     }
 
     async componentDidMount() {

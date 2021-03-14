@@ -118,7 +118,8 @@ class ServerTree extends React.Component<Properties, State> {
         return (
             <li key={info.address}>
                 <ContextMenuTrigger id={"server_context_trigger_" + info.address}>
-                    <div className={className} onClick={() => this.props.onSelectedChannelChanged({ address: info.address })}>
+                    <div className={className} onClick={() => this.props.onSelectedChannelChanged({ address: info.address })}
+                         data-cy={info.name}>
                         {info.name}
                         {info.isClosed && this.createDisconnectedImage(info.quitReason)}
                     </div>
@@ -148,7 +149,7 @@ class ServerTree extends React.Component<Properties, State> {
 
         return (
             <div className={containerClass}>
-                <button onClick={this.showAddServerDialog} className="button">Add a server</button>
+                <button onClick={this.showAddServerDialog} className="button" data-cy="add-server">Add a server</button>
                 <ul>
                     {servers}
                 </ul>

@@ -1,0 +1,37 @@
+{
+    "cmd": "WELCOME",
+    "name": "test",
+    "channels": [
+        {
+            "id": 1,
+            "name": "#general",
+            "users": [
+                {
+                    "id": 1,
+                    "username": "testuser",
+                    "nickname": "testuser",
+                    "status": "Online"
+                },
+                {
+                    "id": 2,
+                    "username": "otheruser",
+                    "nickname": "otheruser",
+                    "status": "Offline"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "#testing",
+            "users": [
+                {
+                    "id": 1,
+                    "username": "testuser",
+                    "nickname": "testuser",
+                    "status": "Online"
+                }
+            ]
+        }
+    ],
+    "viewing": []
+}

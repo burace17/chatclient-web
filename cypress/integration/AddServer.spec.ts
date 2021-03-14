@@ -24,48 +24,40 @@ describe("Add Server", () => {
         mockServer.start();
 
         cy.mockSockets();
+        cy.visit("/");
+        cy.get("[data-cy=add-server]").click();
     });
 
     it("allows logging as an existing user", () => {
-        cy.visit("https://localhost:3000");
-        cy.get(".button").click();
         cy.get(":nth-child(1) > .textbox").type("0.0.0.0");
         cy.get(".server-form > :nth-child(2) > .textbox").type("test");
         cy.get(":nth-child(3) > .textbox").type("mypassword{enter}");
-        cy.get(".server-name").should("contain", "test");
+        cy.get("[data-cy=test]").should("contain", "test");
     });
     it("allows registering as a new user", () => {
-        cy.visit("https://localhost:3000");
-        cy.get(".button").click();
         cy.get(":nth-child(1) > .textbox").type("0.0.0.0");
         cy.get(".server-form > :nth-child(2) > .textbox").type("newuser123");
         cy.get(":nth-child(3) > .textbox").type("my password");
         cy.get(":nth-child(5) > :nth-child(2) > input").click();
         cy.get("[type=\"submit\"]").click();
-        cy.get(".server-name").should("contain", "test");
+        cy.get("[data-cy=test]").should("contain", "test");
     });
     it("can dismiss with ESC", () => {
-        cy.visit("https://localhost:3000");
-        cy.get(".button").click();
         cy.get(".server-form").should("exist");
         cy.get("form").type("{esc}");
         cy.get(".server-form").should("not.exist");
     });
     it("can dismiss with close button", () => {
-        cy.visit("https://localhost:3000");
-        cy.get(".button").click();
         cy.get(".server-form").should("exist");
         cy.get(".close").click();
         cy.get(".server-form").should("not.exist");
     });
     it("can dismiss with cancel button", () => {
-        cy.visit("https://localhost:3000");
-        cy.get(".button").click();
         cy.get(":nth-child(1) > .textbox").type("0.0.0.0");
         cy.get(".server-form > :nth-child(2) > .textbox").type("newuser123");
         cy.get(":nth-child(3) > .textbox").type("my password");
-        cy.get("[type=\"button\"]").click();
+        cy.get("[data-cy=cancel]").click();
         cy.get(".server-form").should("not.exist");
-        cy.get(".server-name").should("not.exist");
+        cy.get("[data-cy=test]").should("not.exist");
     });
 });
