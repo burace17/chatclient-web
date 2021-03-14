@@ -65,7 +65,7 @@ test("Add server", () => {
     Modal.setAppElement("#root");
 
 
-    const testAddServer = (addr: string, username: string, password: string, shouldSubmit: boolean) => {
+    const testAddServer = (addr: string, username: string, password: string, shouldSubmit: boolean, shouldRegister: boolean) => {
         const addServerButton = screen.getByRole("button", { name: "Add a server"});
         fireEvent.click(addServerButton);
 
@@ -77,6 +77,11 @@ test("Add server", () => {
 
         const passwordElem = screen.getByPlaceholderText(/password/i);
         fireEvent.change(passwordElem, { target: { value: password } });
+
+        if (shouldRegister) {
+            const radioRegister = screen.getByRole("radio", { name: /no, create an account for me\./i });
+            radioRegister.click();
+        }
 
         if (shouldSubmit) {
             const submit = screen.getByRole("button", { name: "Add" });
@@ -91,12 +96,16 @@ test("Add server", () => {
         }
     };
 
-    const combos: [string, string, string, boolean][] = [
-        ["localhost", "myusername", "mypassword", true],
-        ["192.168.1.1", "someotheruser", "really secret password", false],
-        ["192.168.1.126", "test", "testpassword", true]
+    const combos: [string, string, string, boolean, boolean][] = [
+        ["localhost", "myusername", "mypassword", true, false],
+        ["192.168.1.1", "someotheruser", "really secret password", false, false],
+        ["wss://192.168.1.126", "test", "testpassword", true, true]
     ];
 
     combos.forEach(args => testAddServer.apply(this, args));
-    expect(onServerAdded).toHaveBeenCalledTimes(combos.filter(args => args[3]).length);
+    const serverAdded = expect(onServerAdded);
+    serverAdded.toHaveBeenCalledTimes(combos.filter(args => args[3]).length);
+
+    // I'd like to just pass in combos[2] but the test doesn't work then?
+    serverAdded.toHaveBeenNthCalledWith(2, combos[2][0], combos[2][1], combos[2][2], combos[2][3], combos[2][4]);
 });

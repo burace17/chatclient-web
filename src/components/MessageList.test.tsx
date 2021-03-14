@@ -6,27 +6,17 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { ClientMessage } from "../net/client";
 import MessageList from "./MessageList";
 
-function makeMessage(message_id: number, time: number, content: string, nickname: string): ClientMessage {
-    return {
-        message_id,
-        time,
-        content,
-        nickname
-    };
-}
-
-test("Message list", () => {
+test("Message list grouping", () => {
     const date = new Date();
     const now = Math.floor(date.getTime() / 1000);
-    const inputs: [number, number, string, string][] = [
-        [1, 1613536972, "hello world", "testuser"],
-        [2, 1613536980, "my message", "testuser"],
-        [3, 1613536990, "this works?", "otheruser"],
-        [4, now, "don't group this", "otheruser"],
-        [5, now + 10, "but make sure we group this", "testuser"]
+    const messages: ClientMessage[] = [
+        {message_id: 1, time: 1613536972, content: "hello world", nickname: "testuser"},
+        {message_id: 2, time: 1613536980, content: "my message", nickname: "testuser"},
+        {message_id: 3, time: 1613536990, content: "this works?", nickname: "otheruser"},
+        {message_id: 4, time: now, content: "don't group this", nickname: "otheruser"},
+        {message_id: 5, time: now + 10, content: "but make sure we group this", nickname: "testuser"}
     ];
 
-    const messages = inputs.map(args => makeMessage.apply(this, args));
     render(<MessageList messages={messages} />);
 
     const getDateString = (time: number) => {
@@ -51,15 +41,15 @@ test("Message list", () => {
     };
 
     // we expect to find this date in the DOM
-    expect(screen.queryByText(getDateString(inputs[0][1]))).toBeInTheDocument();
+    expect(screen.queryByText(getDateString(messages[0].time))).toBeInTheDocument();
 
     // but not these, since they should be grouped
-    expect(screen.queryByText(getDateString(inputs[1][1]))).not.toBeInTheDocument();
-    expect(screen.queryByText(getDateString(inputs[2][1]))).not.toBeInTheDocument();
+    expect(screen.queryByText(getDateString(messages[1].time))).not.toBeInTheDocument();
+    expect(screen.queryByText(getDateString(messages[2].time))).not.toBeInTheDocument();
 
     // now check that we don't show the full date when the days are the same
-    expect(screen.queryByText(getDateString(inputs[3][1]))).not.toBeInTheDocument();
+    expect(screen.queryByText(getDateString(messages[3].time))).not.toBeInTheDocument();
 
     // this time should only appear once since the next message should be grouped.
-    expect(screen.queryAllByText(getTimeString(inputs[3][1])).length === 1).toBeTruthy();
+    expect(screen.queryAllByText(getTimeString(messages[3].time)).length === 1).toBeTruthy();
 });
