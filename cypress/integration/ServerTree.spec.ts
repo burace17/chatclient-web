@@ -30,25 +30,53 @@ describe("Server Tree", () => {
         cy.get(".channel-name").should("contain.text", "#testing");
         cy.get(".user-list").should("contain.text", "testuser");
         cy.get(".user-list").should("not.contain.text", "otheruser");
+        cy.get(".entrybox").should("be.enabled");
 
         // Click #general
         cy.get(":nth-child(1) > .react-contextmenu-wrapper > .channel-button").click();
         cy.get(".channel-name").should("contain.text", "#general");
         cy.get(".user-list").should("contain.text", "testuser");
         cy.get(".user-list").should("contain.text", "otheruser");
+        cy.get(".entrybox").should("be.enabled");
     });
 
     it("allows leaving servers", () => {
         cy.get("[data-cy=test]").rightclick();
         cy.get(".react-contextmenu--visible > :nth-child(3)").click();
         cy.get("[data-cy=test]").should("not.exist");
+        cy.get(".entrybox").should("be.disabled");
     });
 
     it("allows modifying server properties", () => {
+        // this will change the server address to something invalid and make sure we disconnected.
         cy.get("[data-cy=test]").rightclick();
         cy.get(".react-contextmenu--visible > :nth-child(4)").click();
         cy.get(":nth-child(1) > .textbox").clear();
         cy.get(":nth-child(1) > .textbox").type("e{enter}");
         cy.get("[data-cy=test]").should("not.exist");
+        cy.get(".entrybox").should("be.disabled");
+
+        // now change it back to a valid address
+        cy.get("[data-cy=\"wss://e:1337\"]").rightclick();
+        cy.get(".react-contextmenu--visible > :nth-child(4)").click();
+        cy.get(":nth-child(1) > .textbox").clear();
+        cy.get(":nth-child(1) > .textbox").type("0.0.0.0{enter}");
+        cy.get("[data-cy=test]").should("exist");
+        cy.get(".entrybox").should("be.enabled");
     });
+
+    it("allows reconnecting to the same server", () => {
+        cy.get("[data-cy=test]").rightclick();
+        cy.get(".react-contextmenu--visible > :nth-child(2)").click();
+        cy.get("[data-cy=test]").should("exist");
+        cy.get(".entrybox").should("be.enabled");
+    });
+
+    it("toggles its visibility when clicking the burger button", () => {
+        cy.get("[data-cy=test]").should("be.visible");
+        cy.get("[data-cy=toggle-server-list]").click();
+        cy.get("[data-cy=test]").should("not.be.visible");
+        cy.get("[data-cy=toggle-server-list]").click();
+        cy.get("[data-cy=test]").should("be.visible");
+    })
 });

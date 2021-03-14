@@ -25,12 +25,12 @@ function Header(props: Properties) {
     return (
         <div className="header">
             <button className="burger-button" onClick={props.onToggleServerTree}
-                title="Toggle Server List">
+                title="Toggle Server List" data-cy="toggle-server-list">
                 {BurgerButton()}
             </button>
             <span className="channel-name">{props.channel}</span>
             <button className="burger-button" onClick={props.onToggleUserList}
-                title="Toggle User List">
+                title="Toggle User List" data-cy="toggle-user-list">
                 {BurgerButton()}
             </button>
         </div>

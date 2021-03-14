@@ -64,15 +64,13 @@ class ServerTree extends React.Component<Properties, State> {
     private hideModifyServerDialog = () => {
         this.setState({
             showModifyServer: false,
-            modifyServerAddress: undefined,
-            modifyServerUsername: undefined,
-            modifyServerPassword: undefined,
-            modifyServerInfo: undefined
         });
     }
 
     private onModifyServerCommitted = (_: boolean, address?: string, username?: string, password?: string) => {
         this.setState({ showModifyServer: false });
+        if (this.state.modifyServerAddress)
+            this.props.onServerRemoved(this.state.modifyServerAddress);
         this.props.onServerAdded(address, username, password, true, false);
     }
 

@@ -250,21 +250,14 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWelcome = (addr: string, channels: Array<Channel>) => {
-        // Select the first channel for this server if nothing is selected right now.
-        let channel = this.state.selectedTreeItem as Channel;
-        let canSendMessage = this.state.canSendMessage;
-        if (!channel.name && channels.length > 0) { // pick the first channel when we connect for the first time
-            this.onTreeSelectionChanged(channel);
-        }
-        else if (channel && channel.address === addr) {
-            canSendMessage = true; // reconnected to the current server.
+        const channel = this.state.selectedTreeItem as Channel;
+        if (!channel.name && channels.length > 0) {
+            this.onTreeSelectionChanged(channels[0]);
         }
 
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
-            selectedTreeItem: channel,
-            canSendMessage,
-            currentChannelUsers: channel.users ?? []
+            canSendMessage: this.state.selectedTreeItem !== null,
         });
     }
 
@@ -309,7 +302,7 @@ class App extends React.Component<Properties, State> {
         this.setState(state => {
             return {
                 serverNames: getNamesAndAddresses(this.clients),
-                canSendMessage: state.selectedTreeItem?.address !== address
+                canSendMessage: state.selectedTreeItem !== null && state.selectedTreeItem.address !== address
             };
         });
     }
@@ -331,8 +324,7 @@ class App extends React.Component<Properties, State> {
             if (window.credentialManager) {
                 await window.credentialManager.removeServerInfo(addr, client.getProps().username);
             }
-            const selectedChannel = this.state.selectedTreeItem as Channel;
-            if (selectedChannel && selectedChannel.address === addr) {
+            if (this.state.selectedTreeItem?.address === addr) {
                 this.setState({
                     currentChannelMessages: [],
                     currentChannelUsers: [],
