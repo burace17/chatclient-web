@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 import React from "react";
 import "./ServerProperties.css";
 import "./util.css";
@@ -57,14 +57,14 @@ export default class ServerProperties extends React.Component<Properties> {
                 </li>}
                 {this.props.showRegistrationOptions && <li>
                     <label>
-                        <input type="radio" name="register" value="Yes, log me in." defaultChecked 
-                               onChange={onLoginOptionChanged} />
+                        <input type="radio" name="register" value="Yes, log me in." defaultChecked
+                            onChange={onLoginOptionChanged} />
                         <span className="text">Yes, log me in.</span>
                         <br />
                     </label>
                     <label>
-                        <input type="radio" name="register" value="No, create an account for me." 
-                               onChange={onRegisterOptionChanged} />
+                        <input type="radio" name="register" value="No, create an account for me."
+                            onChange={onRegisterOptionChanged} />
                         <span className="text">No, create an account for me.</span>
                     </label>
                 </li>}

@@ -78,5 +78,5 @@ describe("Server Tree", () => {
         cy.get("[data-cy=test]").should("not.be.visible");
         cy.get("[data-cy=toggle-server-list]").click();
         cy.get("[data-cy=test]").should("be.visible");
-    })
+    });
 });

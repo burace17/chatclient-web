@@ -3,27 +3,27 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
  
 function createTestElement(): HTMLElement {
-  const testElement: HTMLElement = document.createElement("div");
-  testElement.style.cssText = "position: fixed; top: 0; height: 100vh; pointer-events: none;";
-  document.documentElement.insertBefore(testElement, document.documentElement.firstChild);
-  return testElement;
+    const testElement: HTMLElement = document.createElement("div");
+    testElement.style.cssText = "position: fixed; top: 0; height: 100vh; pointer-events: none;";
+    document.documentElement.insertBefore(testElement, document.documentElement.firstChild);
+    return testElement;
 }
 
 function removeTestElement(element: HTMLElement) {
-  document.documentElement.removeChild(element);
+    document.documentElement.removeChild(element);
 }
 
 function checkSizes() {
-  const vhTest = createTestElement();
-  const windowHeight = window.visualViewport.height;
-  const vh = vhTest.offsetHeight;
-  const offset = vh - windowHeight;
-  removeTestElement(vhTest);
-  return vh - offset;
+    const vhTest = createTestElement();
+    const windowHeight = window.visualViewport.height;
+    const vh = vhTest.offsetHeight;
+    const offset = vh - windowHeight;
+    removeTestElement(vhTest);
+    return vh - offset;
 }
 
 function updateCssVar(cssVarName: string, result: number) {
-  document.documentElement.style.setProperty(`--${cssVarName}`, `${result}px`);
+    document.documentElement.style.setProperty(`--${cssVarName}`, `${result}px`);
 }
 
 function updateVhOffset() {

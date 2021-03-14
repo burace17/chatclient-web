@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 import React from "react";
 import ModalDialog from "./ModalDialog";
 import ServerProperties from "./ServerProperties";
@@ -61,13 +61,13 @@ class ServerPropertiesDialog extends React.Component<Properties, State> {
         const onShouldRegisterChanged = (shouldRegister: boolean) => this.setState({ shouldRegister });
 
         return (
-            <ModalDialog isOpen={this.props.show} title={this.props.title} showOkButton={true} showCancelButton={true} 
-                       okButtonText={this.props.okButtonText} onOkButtonPressed={commit} onClose={discard}>
+            <ModalDialog isOpen={this.props.show} title={this.props.title} showOkButton={true} showCancelButton={true}
+                okButtonText={this.props.okButtonText} onOkButtonPressed={commit} onClose={discard}>
                 <span className="text">{this.props.infoText}</span>
                 <ServerProperties onServerAddressChanged={onServerAddressChanged} onUsernameChanged={onUsernameChanged}
                     onPasswordChanged={onPasswordChanged} defaultAddress={this.props.defaultServerAddress}
                     defaultUsername={this.props.defaultUsername} defaultPassword={this.props.defaultPassword}
-                    showRegistrationOptions={this.props.showRegistrationOptions} 
+                    showRegistrationOptions={this.props.showRegistrationOptions}
                     onRegisterOptionChanged={onShouldRegisterChanged} />
             </ModalDialog>
         );

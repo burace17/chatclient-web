@@ -8,21 +8,21 @@ import { User, UserStatus } from "../net/client";
 
 interface Properties {
     isHidden: boolean;
-    users: User[]
+    users: User[];
 }
 
 function addUser(user: User) {
     let className;
     switch (user.status) {
-        case UserStatus.Online:
-            className = "online-user";
-            break;
-        case UserStatus.Away:
-            className = "away-user";
-            break;
-        case UserStatus.Offline:
-            className = "offline-user";
-            break;
+    case UserStatus.Online:
+        className = "online-user";
+        break;
+    case UserStatus.Away:
+        className = "away-user";
+        break;
+    case UserStatus.Offline:
+        className = "offline-user";
+        break;
     }
 
     return (

@@ -117,7 +117,7 @@ class ServerTree extends React.Component<Properties, State> {
             <li key={info.address}>
                 <ContextMenuTrigger id={"server_context_trigger_" + info.address}>
                     <div className={className} onClick={() => this.props.onSelectedChannelChanged({ address: info.address })}
-                         data-cy={info.name}>
+                        data-cy={info.name}>
                         {info.name}
                         {info.isClosed && this.createDisconnectedImage(info.quitReason)}
                     </div>

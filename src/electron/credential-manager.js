@@ -73,4 +73,4 @@ exports.setupIPCEvents = () => {
     ipcMain.handle("get-stored-password", getStoredPassword);
     ipcMain.handle("store-server-info", storeServerInfo);
     ipcMain.handle("remove-server-info", removeServerInfo);
-}
+};

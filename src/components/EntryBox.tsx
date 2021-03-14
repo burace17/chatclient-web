@@ -1,13 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 import "./EntryBox.css";
 import "./util.css";
 
 interface Properties {
-    onSendMessage: (text: string) => void
-    canSendMessage: boolean
+    onSendMessage: (text: string) => void;
+    canSendMessage: boolean;
 }
 
 function EntryBox(props: Properties) {
@@ -23,7 +23,7 @@ function EntryBox(props: Properties) {
     return (
         <div className="entrybox-container">
             <input type="text" className="entrybox textbox" placeholder={placeholder}
-                   onKeyPress={onKeyDown} disabled={!props.canSendMessage} />
+                onKeyPress={onKeyDown} disabled={!props.canSendMessage} />
         </div>
     );
 }

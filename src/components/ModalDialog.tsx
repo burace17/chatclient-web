@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 import Modal from "react-modal";
 import "./ModalDialog.css";
 import "./util.css";
@@ -24,7 +24,7 @@ interface Properties {
 export default function ModalDialog(props: Properties) {
     return (
         <Modal isOpen={props.isOpen} contentLabel={props.title} onRequestClose={props.onClose}
-               className="modal" overlayClassName="content" shouldCloseOnOverlayClick={false}>
+            className="modal" overlayClassName="content" shouldCloseOnOverlayClick={false}>
             <div className="content-header">
                 <h4 className="close-header">{props.title}</h4>
                 <button onClick={props.onClose} className="close-button">
@@ -38,7 +38,7 @@ export default function ModalDialog(props: Properties) {
             <form onSubmit={e => e.preventDefault()}>
                 {props.children}
                 <br />
-                {props.showOkButton && 
+                {props.showOkButton &&
                     <button type="submit" className="button" onClick={props.onOkButtonPressed}>{props.okButtonText ?? "OK"}</button>}
                 {props.showCancelButton &&
                     <button type="button" className="button" onClick={props.onClose} data-cy="cancel">

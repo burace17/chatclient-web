@@ -35,7 +35,7 @@ describe("Add Server", () => {
         cy.get("[data-cy=test]").should("contain", "test");
     });
     it("allows registering as a new user", () => {
-        cy.get(":nth-child(1) > .textbox").type("0.0.0.0");
+        cy.get(":nth-child(1) > .textbox").type("wss://0.0.0.0:1337");
         cy.get(".server-form > :nth-child(2) > .textbox").type("newuser123");
         cy.get(":nth-child(3) > .textbox").type("my password");
         cy.get(":nth-child(5) > :nth-child(2) > input").click();

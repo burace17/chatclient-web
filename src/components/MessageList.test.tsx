@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { ClientMessage } from "../net/client";
 import MessageList from "./MessageList";
 
@@ -21,7 +21,7 @@ test("Message list grouping", () => {
 
     const getDateString = (time: number) => {
         const targetDate = new Date(time * 1000);
-        const dateOptions = {
+        const dateOptions: Intl.DateTimeFormatOptions = {
             year: "2-digit",
             month: "2-digit",
             day: "2-digit",
@@ -33,7 +33,7 @@ test("Message list grouping", () => {
 
     const getTimeString = (time: number) => {
         const targetDate = new Date(time * 1000);
-        const timeOptions = {
+        const timeOptions: Intl.DateTimeFormatOptions = {
             hour: "numeric",
             minute: "2-digit"
         };

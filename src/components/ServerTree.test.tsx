@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import ServerTree from "./ServerTree";
 import { ServerSelection, ServerInfo } from "../App";
@@ -22,8 +22,9 @@ test("Leave server", () => {
         username: "test",
         password: "test",
         name: "Server 2",
-        channels: [{id: 0, address: "wss://localhost:1337", name: "#general", users: []}, 
-                   {id: 1, address: "wss://localhost:1337", name: "#testing", users: []}],
+        channels: [
+            { id: 0, address: "wss://localhost:1337", name: "#general", users: [] },
+            { id: 1, address: "wss://localhost:1337", name: "#testing", users: [] }],
         isClosed: false,
         channelsWithUnreadMessages: []
     };
@@ -36,7 +37,7 @@ test("Leave server", () => {
     const isHidden = false;
 
     render(<ServerTree connectedServers={servers} selectedChannel={selectedChannel} isHidden={isHidden}
-        onServerAdded={onServerAdded} onServerRemoved={onServerRemoved} 
+        onServerAdded={onServerAdded} onServerRemoved={onServerRemoved}
         onSelectedChannelChanged={onSelectedChannelChanged} />);
 
     const server1Element = screen.getByText(/192.168.0.111/i);
@@ -56,17 +57,17 @@ test("Add server", () => {
     const onServerAdded = jest.fn();
     const onServerRemoved = jest.fn();
     const onSelectedChannelChanged = jest.fn();
-    const selectedChannel: ServerSelection | null = null
+    const selectedChannel: ServerSelection | null = null;
     const isHidden = false;
 
     render(<div id="root"><ServerTree connectedServers={servers} selectedChannel={selectedChannel} isHidden={isHidden}
-        onServerAdded={onServerAdded} onServerRemoved={onServerRemoved} 
+        onServerAdded={onServerAdded} onServerRemoved={onServerRemoved}
         onSelectedChannelChanged={onSelectedChannelChanged} /></div>);
     Modal.setAppElement("#root");
 
 
     const testAddServer = (addr: string, username: string, password: string, shouldSubmit: boolean, shouldRegister: boolean) => {
-        const addServerButton = screen.getByRole("button", { name: "Add a server"});
+        const addServerButton = screen.getByRole("button", { name: "Add a server" });
         fireEvent.click(addServerButton);
 
         const addressElem = screen.getByPlaceholderText(/address/i);

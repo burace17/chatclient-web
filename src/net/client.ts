@@ -135,33 +135,33 @@ class Client {
         // TODO: Need types here...
         const message = JSON.parse(evt.data);
         switch (message.cmd) {
-            case "WELCOME":
-                this.handleWelcome(message);
-                break;
-            case "MSG": 
-                this.handleMsg(message);
-                break;
-            case "JOIN": 
-                this.handleJoin(message);
-                break;
-            case "STATUS":
-                this.handleStatusUpdate(message);
-                break;
-            case "CHANNELINFO":
-                this.handleChannelInfo(message);
-                break;
-            case "HISTORY":
-                this.handleChannelHistory(message);
-                break;
-            case "HASVIEWERS":
-                this.handleGotViewer(message);
-                break;
-            case "NOVIEWERS":
-                this.handleNoViewers(message);
-                break;
-            default:
-                console.log("Got message with unknown command: " + evt.data);
-                break;
+        case "WELCOME":
+            this.handleWelcome(message);
+            break;
+        case "MSG": 
+            this.handleMsg(message);
+            break;
+        case "JOIN": 
+            this.handleJoin(message);
+            break;
+        case "STATUS":
+            this.handleStatusUpdate(message);
+            break;
+        case "CHANNELINFO":
+            this.handleChannelInfo(message);
+            break;
+        case "HISTORY":
+            this.handleChannelHistory(message);
+            break;
+        case "HASVIEWERS":
+            this.handleGotViewer(message);
+            break;
+        case "NOVIEWERS":
+            this.handleNoViewers(message);
+            break;
+        default:
+            console.log("Got message with unknown command: " + evt.data);
+            break;
         }
     }
 
