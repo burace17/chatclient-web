@@ -11,6 +11,7 @@
         "@types/react": "^17.0.1",
         "@types/react-dom": "^17.0.1",
         "@types/url-regex-safe": "^1.0.0",
+        "cypress": "^6.6.0",
         "keytar": "^7.4.0",
         "react": "^17.0.1",
         "react-contextmenu": "burace17/react-contextmenu",
