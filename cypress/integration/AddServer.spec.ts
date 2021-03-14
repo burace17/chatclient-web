@@ -46,11 +46,13 @@ describe("Add Server", () => {
         cy.get(".server-form").should("exist");
         cy.get("form").type("{esc}");
         cy.get(".server-form").should("not.exist");
+        cy.get(".entrybox").should("be.disabled");
     });
     it("can dismiss with close button", () => {
         cy.get(".server-form").should("exist");
         cy.get(".close").click();
         cy.get(".server-form").should("not.exist");
+        cy.get(".entrybox").should("be.disabled");
     });
     it("can dismiss with cancel button", () => {
         cy.get(":nth-child(1) > .textbox").type("0.0.0.0");
@@ -59,5 +61,6 @@ describe("Add Server", () => {
         cy.get("[data-cy=cancel]").click();
         cy.get(".server-form").should("not.exist");
         cy.get("[data-cy=test]").should("not.exist");
+        cy.get(".entrybox").should("be.disabled");
     });
 });
