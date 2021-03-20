@@ -21,7 +21,7 @@ describe("Server Tree", () => {
         mockServer.start();
 
         cy.mockSockets();
-        cy.visit("/").then(() => cy.login());
+        cy.visit("/").then(() => cy.login("ws://0.0.0.0:1337", "test", "test"));
     });
 
     it("sets the active channel", () => {
@@ -78,5 +78,12 @@ describe("Server Tree", () => {
         cy.get("[data-cy=test]").should("not.be.visible");
         cy.get("[data-cy=toggle-server-list]").click();
         cy.get("[data-cy=test]").should("be.visible");
+    });
+
+    it("allows selecting servers", () => {
+        cy.get("[data-cy=test]").click();
+        cy.get(".entrybox").should("be.enabled");
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button").click();
+        cy.get(".entrybox").should("be.enabled");
     });
 });

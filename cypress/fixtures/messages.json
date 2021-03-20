@@ -1,0 +1,668 @@
+{
+    "cmd": "HISTORY",
+    "messages": {
+        "#general": {
+            "last_read_message": 113,
+            "messages": [
+                {
+                    "content": ".",
+                    "message_id": 113,
+                    "nickname": "test",
+                    "time": 1615710186,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "mailto:test@test.com",
+                    "message_id": 112,
+                    "nickname": "test",
+                    "time": 1615682221,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "ftp://sdjskfjlds.com",
+                    "message_id": 111,
+                    "nickname": "test",
+                    "time": 1615682055,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "Dndnfiendjnejdndnekfne dkcjend dendnfnfnnddndnnendnendndnenne",
+                    "message_id": 110,
+                    "nickname": "test",
+                    "time": 1615152690,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "testing ",
+                    "message_id": 108,
+                    "nickname": "test",
+                    "time": 1615151603,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "long string sdjfksdfdsjlkfjlkdjljdsljflkdsjfjdsfljdslfjslfjsljflsjdlkfjdslfjdsljflkdfdddjfkljsflkjdslfs",
+                    "message_id": 107,
+                    "nickname": "test",
+                    "time": 1615151119,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "www.google.com",
+                    "message_id": 106,
+                    "nickname": "test",
+                    "time": 1615149387,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "google.com",
+                    "message_id": 105,
+                    "nickname": "test",
+                    "time": 1615149385,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "test https://github.com/facebook/react/issues/3386",
+                    "message_id": 104,
+                    "nickname": "test",
+                    "time": 1615100609,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "https://www.google.com",
+                    "message_id": 103,
+                    "nickname": "test",
+                    "time": 1615098014,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "www.google.com",
+                    "message_id": 102,
+                    "nickname": "test",
+                    "time": 1615098002,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "testing",
+                    "message_id": 101,
+                    "nickname": "newuser",
+                    "time": 1615095077,
+                    "user": {
+                        "id": 3,
+                        "nickname": "newuser",
+                        "status": "Offline",
+                        "username": "newuser"
+                    }
+                },
+                {
+                    "content": "hello",
+                    "message_id": 100,
+                    "nickname": "newuser",
+                    "time": 1615095076,
+                    "user": {
+                        "id": 3,
+                        "nickname": "newuser",
+                        "status": "Offline",
+                        "username": "newuser"
+                    }
+                },
+                {
+                    "content": ".....",
+                    "message_id": 99,
+                    "nickname": "test",
+                    "time": 1615094586,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "testing",
+                    "message_id": 98,
+                    "nickname": "newuser",
+                    "time": 1615094483,
+                    "user": {
+                        "id": 3,
+                        "nickname": "newuser",
+                        "status": "Offline",
+                        "username": "newuser"
+                    }
+                },
+                {
+                    "content": "....",
+                    "message_id": 97,
+                    "nickname": "newuser",
+                    "time": 1615094480,
+                    "user": {
+                        "id": 3,
+                        "nickname": "newuser",
+                        "status": "Offline",
+                        "username": "newuser"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 96,
+                    "nickname": "test",
+                    "time": 1615094444,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "it still works",
+                    "message_id": 95,
+                    "nickname": "test",
+                    "time": 1615076858,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "tesitng",
+                    "message_id": 94,
+                    "nickname": "test",
+                    "time": 1615076856,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "this is a test",
+                    "message_id": 93,
+                    "nickname": "test",
+                    "time": 1614481038,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "hello world",
+                    "message_id": 92,
+                    "nickname": "test",
+                    "time": 1614481036,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 91,
+                    "nickname": "test",
+                    "time": 1614480639,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "Fdeedbhtthhj",
+                    "message_id": 90,
+                    "nickname": "test",
+                    "time": 1614480216,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "Fggggggg",
+                    "message_id": 89,
+                    "nickname": "test",
+                    "time": 1614480194,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": ".....",
+                    "message_id": 88,
+                    "nickname": "test",
+                    "time": 1614480083,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "...",
+                    "message_id": 87,
+                    "nickname": "test",
+                    "time": 1614480070,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 86,
+                    "nickname": "otheruser",
+                    "time": 1614480029,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "???",
+                    "message_id": 85,
+                    "nickname": "otheruser",
+                    "time": 1614480026,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 84,
+                    "nickname": "otheruser",
+                    "time": 1614480014,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 83,
+                    "nickname": "test",
+                    "time": 1614480009,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 82,
+                    "nickname": "test",
+                    "time": 1614480004,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": ".",
+                    "message_id": 81,
+                    "nickname": "otheruser",
+                    "time": 1614479982,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": ".",
+                    "message_id": 80,
+                    "nickname": "test",
+                    "time": 1614479938,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "yep",
+                    "message_id": 79,
+                    "nickname": "otheruser",
+                    "time": 1614479933,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "but this should",
+                    "message_id": 78,
+                    "nickname": "otheruser",
+                    "time": 1614479915,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "this should not",
+                    "message_id": 77,
+                    "nickname": "otheruser",
+                    "time": 1614479907,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "this should make a notification",
+                    "message_id": 76,
+                    "nickname": "otheruser",
+                    "time": 1614479884,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 75,
+                    "nickname": "otheruser",
+                    "time": 1614479581,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 74,
+                    "nickname": "test",
+                    "time": 1614479543,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 73,
+                    "nickname": "otheruser",
+                    "time": 1614479527,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 72,
+                    "nickname": "otheruser",
+                    "time": 1614479483,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "hello",
+                    "message_id": 71,
+                    "nickname": "otheruser",
+                    "time": 1614479469,
+                    "user": {
+                        "id": 2,
+                        "nickname": "otheruser",
+                        "status": "Offline",
+                        "username": "otheruser"
+                    }
+                },
+                {
+                    "content": "test",
+                    "message_id": 70,
+                    "nickname": "test",
+                    "time": 1614479066,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                }
+            ]
+        },
+        "#test2": {
+            "last_read_message": 109,
+            "messages": [
+                {
+                    "content": "........",
+                    "message_id": 109,
+                    "nickname": "test",
+                    "time": 1615152553,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                }
+            ]
+        },
+        "#testing": {
+            "last_read_message": 57,
+            "messages": [
+                {
+                    "content": ".",
+                    "message_id": 114,
+                    "nickname": "test",
+                    "time": 1615710200,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 63,
+                    "nickname": "test",
+                    "time": 1614478257,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "Th td tid",
+                    "message_id": 57,
+                    "nickname": "test",
+                    "time": 1614478080,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "Test",
+                    "message_id": 56,
+                    "nickname": "test",
+                    "time": 1614478065,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "Hello world",
+                    "message_id": 55,
+                    "nickname": "test",
+                    "time": 1614478052,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "test",
+                    "message_id": 50,
+                    "nickname": "test",
+                    "time": 1614065092,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "?",
+                    "message_id": 39,
+                    "nickname": "test",
+                    "time": 1614064533,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "test",
+                    "message_id": 12,
+                    "nickname": "test",
+                    "time": 1614045444,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "hello",
+                    "message_id": 10,
+                    "nickname": "test",
+                    "time": 1613978118,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                },
+                {
+                    "content": "testing",
+                    "message_id": 9,
+                    "nickname": "test",
+                    "time": 1613978117,
+                    "user": {
+                        "id": 1,
+                        "nickname": "test",
+                        "status": "Online",
+                        "username": "test"
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -12,9 +12,15 @@ Cypress.Commands.add("mockSockets", () => {
 });
 
 // Hacky way of bypassing the login UI.
-Cypress.Commands.add("login", () => {
+Cypress.Commands.add("login", (addr: string, username: string, password: string) => {
     cy.window().then(window => {
-        (window as any).ccTestAppInstance.onServerAdded("ws://0.0.0.0:1337", "test", "test", false, false);
+        (window as any).ccTestAppInstance.onServerAdded(addr, username, password, false, false);
+    });
+});
+
+Cypress.Commands.add("stubNotifications", () => {
+    cy.on("window:load", window => {
+        cy.stub(window, "Notification").as("Notification").callsFake(() => {});
     });
 });
 
@@ -24,7 +30,8 @@ declare global {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface Chainable<Subject> {
             mockSockets(): void;
-            login();
+            login(addr: string, username: string, password: string);
+            stubNotifications();
         }
     }
 }
