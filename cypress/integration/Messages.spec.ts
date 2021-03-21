@@ -2,24 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { Server } from "mock-socket";
-import { User, UserStatus } from "../../src/net/client";
+/* eslint jest/valid-expect-in-promise: 0 */
+
+import { MockServer } from "../support/MockServer";
+import { User, UserStatus, Channel } from "../../src/net/client";
 
 describe("Messages", () => {
-    let mockServer: Server = undefined;
-    let socket: WebSocket = undefined;
-    const sendMessage = (user: User, channel: string, content: string) => {
-        const packet = {
-            "cmd": "MSG",
-            "user": user,
-            "channel": channel,
-            "message_id": Math.floor(Math.random() * 1000),
-            "time": Math.floor(Date.now() / 1000),
-            "content": content
-        };
-        socket?.send(JSON.stringify(packet));
-    };
-
+    let mockServer: MockServer;
     const testUser: User = {
         id: 1,
         username: "testuser",
@@ -33,30 +22,33 @@ describe("Messages", () => {
         status: UserStatus.Online
     };
 
+    let channels: Channel[] = [
+        {
+            address: "",
+            id: 1,
+            name: "#general",
+            users: [testUser, otherUser]
+        },
+        {
+            address: "",
+            id: 2,
+            name: "#testing",
+            users: [testUser]
+        }
+    ];
+
     beforeEach(() => {
-        let welcomePacket;
-        cy.fixture("serverData").then(packet => {
-            welcomePacket = packet;
-        });
+        mockServer?.stop();
+        mockServer = new MockServer("ws://0.0.0.0:1337", channels, testUser);
 
         let messagesPacket;
         cy.fixture("messages").then(packet => {
             messagesPacket = packet;
+            for (const k of Object.keys(messagesPacket)) {
+                mockServer.setMessages(k, messagesPacket[k]);
+            }
         });
 
-        mockServer?.close();
-        mockServer = new Server("ws://0.0.0.0:1337");
-        mockServer.on("connection", sock => {
-            socket = sock;
-            sock.send(JSON.stringify(welcomePacket));
-            sock.on("message", (msgStr: string) => {
-                const msg = JSON.parse(msgStr);
-                if (msg.cmd === "HISTORY")
-                    sock.send(JSON.stringify(messagesPacket));
-                else if (msg.cmd === "MSG")
-                    sendMessage(testUser, msg.channel, msg.content);
-            });
-        });
         mockServer.start();
 
         cy.mockSockets();
@@ -66,7 +58,7 @@ describe("Messages", () => {
 
     it("can be received", () => {
         cy.get(":nth-child(43)").then(() => {
-            sendMessage(otherUser, "#general", "hello");
+            mockServer.sendMessage(otherUser, "#general", "hello");
         }).get(":nth-child(44) > .message-content").should("contain.text", "otheruser: hello");
         cy.get(":nth-child(44) > .message-time").should("exist");
     });
@@ -88,6 +80,36 @@ describe("Messages", () => {
         cy.get(".entrybox").type("hello world{enter}");
         cy.get(":nth-child(44) > .message-content").should("contain.text", "testuser: hello world");
         cy.get(":nth-child(44) > .message-time").should("exist");
+    });
+
+    it("update the server tree", () => {
+        cy.get(":nth-child(1) > .react-contextmenu-wrapper > .channel-button")
+            .should("not.have.class", "channel-button-unread");
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button")
+            .should("have.class", "channel-button-unread")
+            .click()
+            .should("not.have.class", "channel-button-unread")
+            .then(() => {
+                mockServer.sendMessage(otherUser, "#general", "test...");
+            })
+            .should("not.have.class", "channel-button-unread")
+            .then(() => {
+                mockServer.sendMessage(otherUser, "#testing", "hello");
+            })
+            .should("not.have.class", "channel-button-unread");
+
+        cy.get(":nth-child(1) > .react-contextmenu-wrapper > .channel-button")
+            .should("have.class", "channel-button-unread");
+
+        cy.get("[data-cy=test]").click();
+
+        cy.get(":nth-child(1) > .react-contextmenu-wrapper > .channel-button")
+            .should("have.class", "channel-button-unread")
+            .click()
+            .should("not.have.class", "channel-button-unread");
+
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button")
+            .should("not.have.class", "channel-button-unread");
     });
 
     /*
