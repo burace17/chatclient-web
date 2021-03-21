@@ -340,13 +340,10 @@ class App extends React.Component<Properties, State> {
     }
 
     private onJoin = (addr: string, channel: string, user: User) => {
-        if (this.state.selectedTreeItem?.address === addr) {
-            let copy = Array.from(this.state.currentChannelUsers);
-            copy.push(user);
-            this.setState({
-                currentChannelUsers: copy
-            });
-        }
+        // TODO: consider removing these parameters as we don't use them.
+        this.setState({
+            serverNames: getNamesAndAddresses(this.clients)
+        });
     }
 
     private onUserStatusUpdate = (addr: string, user: User) => {

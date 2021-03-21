@@ -197,7 +197,10 @@ class Client {
     }
 
     private handleJoin = (message: any) => {
-        const user = message.user;
+        const user: User = message.user;
+        const channel = this.channels.find(c => c.name === message.channel);
+        if (channel)
+            channel.users.push(user);
         this.props.onJoin(this.props.address, message.channel, user);
     }
 

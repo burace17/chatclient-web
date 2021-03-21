@@ -26,7 +26,7 @@ function addUser(user: User) {
     }
 
     return (
-        <li key={"ul- " + user.id}>
+        <li key={"ul-" + user.id}>
             <span className={className}>{user.nickname}</span>
         </li>
     );

@@ -20,6 +20,10 @@ export class MockServer {
     private viewedChannel: Channel | null = null;
 
     constructor(address: string, channels: Channel[], user: User) {
+        for (const c of channels) {
+            this.messages.set(c.name, { last_read_message: null, messages: [] });
+        }
+
         this.channels = channels;
         this.user = user;
         this.server = new Server(address);
@@ -35,30 +39,50 @@ export class MockServer {
                 viewing: []
             };
             sock.send(JSON.stringify(welcomePkt));
-
-            sock.on("message", (msgStr: string) => {
-                const message = JSON.parse(msgStr);
-                if (message.cmd === "HISTORY")
-                    this.sendHistory();
-                else if (message.cmd === "MSG") {
-                    this.sendMessage(this.user, message.channel, message.content);
-                }
-                else if (message.cmd === "VIEWING") {
-                    this.notifyNotViewingChannels();
-                    const packet = {
-                        cmd: "HASVIEWERS",
-                        channel: message.channel
-                    };
-
-                    this.viewedChannel = this.channels.find(c => c.name === message.channel) ?? null;
-                    sock.send(JSON.stringify(packet));
-                }
-                else if (message.cmd === "NOTVIEWING") {
-                    this.notifyNotViewingChannels();
-                }
-            });
+            sock.on("message", this.onSocketMessage);
         });
     }
+
+    private onSocketMessage = (msgStr: string) => {
+        const message = JSON.parse(msgStr);
+        if (message.cmd === "HISTORY")
+            this.sendHistory();
+        else if (message.cmd === "MSG") {
+            this.sendMessage(this.user, message.channel, message.content);
+        }
+        else if (message.cmd === "VIEWING") {
+            this.notifyNotViewingChannels();
+            const packet = {
+                cmd: "HASVIEWERS",
+                channel: message.channel
+            };
+
+            this.viewedChannel = this.channels.find(c => c.name === message.channel) ?? null;
+            this.socket.send(JSON.stringify(packet));
+        }
+        else if (message.cmd === "NOTVIEWING") {
+            this.notifyNotViewingChannels();
+        }
+        else if (message.cmd === "JOIN") {
+            if (!this.messages.has(message.name)) {
+                this.messages.set(message.name, { last_read_message: null, messages: [] });
+                const nextId = Math.max(...this.channels.map(c => c.id)) + 1;
+                this.channels.push({
+                    address: "",
+                    id: nextId,
+                    name: message.name,
+                    users: [this.user]
+                });
+            }
+
+            const channel = this.channels.find(c => c.name === message.name);
+            const channelInfoPacket = {
+                cmd: "CHANNELINFO",
+                channel
+            };
+            this.socket.send(JSON.stringify(channelInfoPacket));
+        }
+    };
 
     setMessages = (channel: string, messagesHolder: MessagesHolder) => {
         messagesHolder.messages = messagesHolder.messages.reverse();
@@ -97,6 +121,15 @@ export class MockServer {
         this.socket?.send(JSON.stringify(packet));
     };
 
+    fakeJoin = (user: User, channel: string) => {
+        const packet = {
+            cmd: "JOIN",
+            channel,
+            user
+        };
+        this.socket?.send(JSON.stringify(packet));
+    };
+
     private sendHistory = () => {
         let messages = {};
         for (const [channelName, messageHolder] of this.messages) {
@@ -114,7 +147,7 @@ export class MockServer {
     private notifyNotViewingChannels = () => {
         if (this.viewedChannel && this.socket) {
             const messagesHolder = this.messages.get(this.viewedChannel.name);
-            const lastMessageId = messagesHolder.messages[messagesHolder.messages.length - 1].message_id;
+            const lastMessageId = messagesHolder.messages[messagesHolder.messages.length - 1]?.message_id ?? null;
             const noViewers = {
                 cmd: "NOVIEWERS",
                 channel: this.viewedChannel.name,
