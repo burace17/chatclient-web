@@ -205,6 +205,12 @@ class Client {
     }
 
     private handleStatusUpdate = (message: any) => {
+        const user: User = message.user;
+        for (const c of this.channels) {
+            const channelUser = c.users.find(u => u.id === user.id);
+            if (channelUser)
+                channelUser.status = user.status;
+        }
         this.props.onUserStatusUpdate(this.props.address, message.user);
     }
 

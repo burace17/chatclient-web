@@ -79,4 +79,31 @@ describe("Channels", () => {
         cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button").click();
         cy.get(":nth-child(1) > .online-user").should("contain.text", "anotheruser");
     });
+
+    it("causes a user list update when user status changes", () => {
+        cy.get(".user-list").should("contain.text", "testuser").then(() => {
+            mockServer.fakeJoin(otherUser, "#general");
+        });
+
+        cy.get(":nth-child(1) > .online-user").should("contain.text", "otheruser").then(() => {
+            otherUser.status = UserStatus.Offline;
+            mockServer.fakeStatusUpdate(otherUser);
+        });
+
+        cy.get(":nth-child(2) > .offline-user").should("contain.text", "otheruser").then(() => {
+            otherUser.status = UserStatus.Online;
+            mockServer.fakeStatusUpdate(otherUser);
+        });
+
+        cy.get(":nth-child(1) > .online-user").should("contain.text", "otheruser");
+        cy.get(".entrybox").type("/join #testing{enter}");
+        cy.get(":nth-child(1) > .react-contextmenu-wrapper > .channel-button").click().then(() => {
+            mockServer.fakeJoin(anotherUser, "#testing"); // have a user join while we aren't looking
+            anotherUser.status = UserStatus.Offline;
+            mockServer.fakeStatusUpdate(anotherUser);
+        });
+
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button").click();
+        cy.get(":nth-child(2) > .offline-user").should("contain.text", "anotheruser");
+    });
 });

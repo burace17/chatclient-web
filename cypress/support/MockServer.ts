@@ -130,6 +130,14 @@ export class MockServer {
         this.socket?.send(JSON.stringify(packet));
     };
 
+    fakeStatusUpdate = (user: User) => {
+        const packet = {
+            cmd: "STATUS",
+            user
+        };
+        this.socket?.send(JSON.stringify(packet));
+    };
+
     private sendHistory = () => {
         let messages = {};
         for (const [channelName, messageHolder] of this.messages) {
