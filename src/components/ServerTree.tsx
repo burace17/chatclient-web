@@ -8,7 +8,7 @@ import ServerPropertiesDialog from "./ServerPropertiesDialog";
 import { ServerInfo, ServerSelection } from "../App";
 import React from "react";
 import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
-import { Channel, compareChannel } from "../net/client";
+import { Channel, compareChannel, ChannelNotificationStatus } from "../net/client";
 
 interface Properties {
     onServerAdded: (addr: string | undefined, username: string | undefined, password: string | undefined, 
@@ -92,8 +92,10 @@ class ServerTree extends React.Component<Properties, State> {
         const selectedChannel = this.props.selectedChannel as Channel;
         const selected = channel.address === selectedChannel?.address && channel.name === selectedChannel.name;
         let className = selected ? "channel-button channel-button-selected" : "channel-button channel-button-unselected";
-        if (info.channelsWithUnreadMessages.includes(channel))
+        if (channel.status === ChannelNotificationStatus.UnreadMessages)
             className += " channel-button-unread";
+        else if (channel.status === ChannelNotificationStatus.Pinged)
+            className += " channel-button-ping";
 
         return (
             <li key={channel.name}>

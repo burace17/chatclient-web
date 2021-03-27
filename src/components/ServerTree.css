@@ -46,6 +46,10 @@ ul {
     color: blue;
 }
 
+.channel-button-ping {
+    color: red;
+}
+
 .server-name {
     padding-bottom: 8px;
     padding-top: 8px;

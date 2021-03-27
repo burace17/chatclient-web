@@ -54,7 +54,6 @@ export interface ServerInfo {
     isClosed: boolean;
     quitReason?: string;
     quitCode?: number;
-    channelsWithUnreadMessages: Channel[];
 }
 
 interface Properties { }
@@ -85,7 +84,6 @@ function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
             isClosed: client.isClosingOrClosed(),
             quitReason: client.getQuitReason(),
             quitCode: client.getQuitCode(),
-            channelsWithUnreadMessages: channels.filter(c => client.hasUnreadMessages(c))
         };
     });
 }

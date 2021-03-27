@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
- 
+
 export interface ClientMessage {
     message_id: number;
     time: number;
@@ -16,6 +16,12 @@ export enum UserStatus {
     Offline = "Offline"
 }
 
+export enum ChannelNotificationStatus {
+    None,
+    UnreadMessages,
+    Pinged
+}
+
 export interface User {
     id: number;
     username: string;
@@ -27,7 +33,8 @@ export interface Channel {
     address: string;
     id: number;
     name: string;
-    users: User[]
+    users: User[];
+    status?: ChannelNotificationStatus;
 }
 
 export interface ClientProperties {
@@ -53,7 +60,8 @@ function appendAddress(message: any, address: string): Channel {
         address,
         id: message.id,
         name: message.name,
-        users: message.users
+        users: message.users,
+        status: ChannelNotificationStatus.None
     };
 }
 
@@ -81,7 +89,7 @@ class Client {
         if (this.isConnected()) {
             this.ws.send(data);
         }
-    }
+    };
 
     private connect = () => {
         console.log("Attempting to connect to " + this.props.address);
@@ -90,7 +98,7 @@ class Client {
         ws.onclose = this.socketOnClose;
         ws.onmessage = this.socketOnMessage;
         return ws;
-    }
+    };
 
     private socketOnOpen = (_: Event) => {
         let packet;
@@ -111,7 +119,7 @@ class Client {
 
         this.send(JSON.stringify(packet));
         this.props.onOpen(this.props.address);
-    }
+    };
 
     private socketOnClose = (e: CloseEvent) => {
         console.log("websocket closed - clean: " + e.wasClean + ", code: " + e.code + ", reason: " + e.reason);
@@ -129,7 +137,7 @@ class Client {
         this.quitReason = e.reason;
 
         this.props.onClose(this.props.address);
-    }
+    };
 
     private socketOnMessage = (evt: MessageEvent<any>) => {
         // TODO: Need types here...
@@ -138,10 +146,10 @@ class Client {
         case "WELCOME":
             this.handleWelcome(message);
             break;
-        case "MSG": 
+        case "MSG":
             this.handleMsg(message);
             break;
-        case "JOIN": 
+        case "JOIN":
             this.handleJoin(message);
             break;
         case "STATUS":
@@ -163,7 +171,7 @@ class Client {
             console.log("Got message with unknown command: " + evt.data);
             break;
         }
-    }
+    };
 
     private handleWelcome = (message: any) => {
         this.serverName = message.name;
@@ -181,10 +189,10 @@ class Client {
 
         this.getChannelHistory(this.channels.map(c => c.name));
         this.props.onWelcome(this.props.address, this.channels);
-    }
+    };
 
     private handleMsg = (message: any) => {
-        let msgs = this.channelMessages.get(message.channel);
+        const msgs = this.channelMessages.get(message.channel);
         const msg = {
             message_id: message.message_id,
             content: message.content,
@@ -193,8 +201,9 @@ class Client {
             nickname: message.user.nickname
         };
         msgs?.push(msg);
+        this.updateChannelStatus(message.channel);
         this.props.onMessage(this.props.address, message.channel, msg);
-    }
+    };
 
     private handleJoin = (message: any) => {
         const user: User = message.user;
@@ -202,7 +211,7 @@ class Client {
         if (channel)
             channel.users.push(user);
         this.props.onJoin(this.props.address, message.channel, user);
-    }
+    };
 
     private handleStatusUpdate = (message: any) => {
         const user: User = message.user;
@@ -212,23 +221,23 @@ class Client {
                 channelUser.status = user.status;
         }
         this.props.onUserStatusUpdate(this.props.address, message.user);
-    }
+    };
 
     private handleChannelInfo = (message: any) => {
         const channel = appendAddress(message.channel, this.props.address);
         this.channels.push(channel);
         this.channelMessages.set(channel.name, []);
         this.props.onReceiveChannelInfo(this.props.address, channel);
-    }
+    };
 
     private handleChannelHistory = (data: any) => {
         interface ChannelHistoryEntry {
             last_read_message: number | null,
-            messages: ClientMessage[]
+            messages: ClientMessage[];
         };
         interface ChannelHistory {
             channelName: string,
-            entry: ChannelHistoryEntry
+            entry: ChannelHistoryEntry;
         };
 
         const messages: ChannelHistory = data.messages;
@@ -237,27 +246,40 @@ class Client {
             const entry = value as ChannelHistoryEntry;
             const messageList = entry.messages;
             if (existingMessages) {
-                this.channelMessages.set(channelName, messageList.concat(existingMessages).sort((a,b) => a.time - b.time));
+                this.channelMessages.set(channelName, messageList.concat(existingMessages).sort((a, b) => a.time - b.time));
                 this.lastRead.set(channelName, entry.last_read_message);
                 //console.log(`history: ${channelName} last read message was ${entry.last_read_message}`);
+                this.updateChannelStatus(channelName);
                 this.props.onMessage(this.props.address, channelName);
             }
         }
-    }
+    };
 
     private handleGotViewer = (data: any) => {
         const channel = data.channel;
         //console.log("handleGotViewer(): " + channel + " is being viewed");
         this.lastRead.set(channel, null);
         this.channelsBeingViewed.add(channel);
+        this.updateChannelStatus(data.channel);
         this.props.onChannelBeingViewed();
-    }
+    };
 
     private handleNoViewers = (data: any) => {
         //console.log("handleNoViewers(): " + data.channel + " is no longer being viewed");
         this.lastRead.set(data.channel, data.message_id);
         this.channelsBeingViewed.delete(data.channel);
-    }
+    };
+
+    private updateChannelStatus = (name: string) => {
+        const channel = this.channels.find(c => c.name === name);
+        if (channel) {
+            if (this.hasUnreadMessages(channel))
+                channel.status = ChannelNotificationStatus.UnreadMessages;
+            else
+                channel.status = ChannelNotificationStatus.None;
+        }
+
+    };
 
     getProps() {
         return this.props;
@@ -301,7 +323,7 @@ class Client {
             return messages[messages.length - 1].message_id;
         else
             return null;
-    }
+    };
 
     hasUnreadMessages(channel: Channel) {
         const lastReadMessage = this.lastRead.get(channel.name) ?? null;
