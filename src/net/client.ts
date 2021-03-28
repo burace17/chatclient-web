@@ -8,6 +8,7 @@ export interface ClientMessage {
     content: string;
     user?: User;
     nickname?: string;
+    isPing?: boolean;
 }
 
 export enum UserStatus {
@@ -77,9 +78,11 @@ class Client {
     private quitReason: string | undefined;
     private quitCode: number | undefined;
     private sendRegistrationFirst: boolean = false;
+    private pingWords: Set<string> = new Set<string>();
 
     constructor(props: ClientProperties, shouldRegister: boolean) {
         this.props = props;
+        this.pingWords.add("@everyone");
         this.serverName = props.address;
         this.sendRegistrationFirst = shouldRegister;
         this.ws = this.connect();
@@ -187,19 +190,21 @@ class Client {
             this.channelsBeingViewed.add(channel);
         }
 
+        this.pingWords.add("@" + this.props.username);
         this.getChannelHistory(this.channels.map(c => c.name));
         this.props.onWelcome(this.props.address, this.channels);
     };
 
     private handleMsg = (message: any) => {
         const msgs = this.channelMessages.get(message.channel);
-        const msg = {
+        const msg: ClientMessage = {
             message_id: message.message_id,
             content: message.content,
             time: message.time,
             user: message.user,
             nickname: message.user.nickname
         };
+        msg.isPing = this.hasPingWord(msg.content);
         msgs?.push(msg);
         this.updateChannelStatus(message.channel);
         this.props.onMessage(this.props.address, message.channel, msg);
@@ -246,7 +251,10 @@ class Client {
             const entry = value as ChannelHistoryEntry;
             const messageList = entry.messages;
             if (existingMessages) {
-                this.channelMessages.set(channelName, messageList.concat(existingMessages).sort((a, b) => a.time - b.time));
+                const mergedMessages = messageList.concat(existingMessages).sort((a, b) => a.time - b.time);
+                for (const msg of mergedMessages)
+                    msg.isPing = this.hasPingWord(msg.content);
+                this.channelMessages.set(channelName, mergedMessages);
                 this.lastRead.set(channelName, entry.last_read_message);
                 //console.log(`history: ${channelName} last read message was ${entry.last_read_message}`);
                 this.updateChannelStatus(channelName);
@@ -273,12 +281,15 @@ class Client {
     private updateChannelStatus = (name: string) => {
         const channel = this.channels.find(c => c.name === name);
         if (channel) {
-            if (this.hasUnreadMessages(channel))
-                channel.status = ChannelNotificationStatus.UnreadMessages;
+            if (this.hasUnreadMessages(channel)) {
+                if (this.isPinged(channel))
+                    channel.status = ChannelNotificationStatus.Pinged;
+                else
+                    channel.status = ChannelNotificationStatus.UnreadMessages;
+            }
             else
                 channel.status = ChannelNotificationStatus.None;
         }
-
     };
 
     getProps() {
@@ -325,12 +336,41 @@ class Client {
             return null;
     };
 
-    hasUnreadMessages(channel: Channel) {
+    private hasUnreadMessages = (channel: Channel) => {
         const lastReadMessage = this.lastRead.get(channel.name) ?? null;
         const lastMessageId = this.getLastMessageId(channel);
         const isBeingViewed = this.isBeingViewed(channel);
 
         return !isBeingViewed && lastReadMessage !== lastMessageId;
+    };
+
+    private isPinged = (channel: Channel) => {
+        const lastReadMessage = this.lastRead.get(channel.name) ?? null;
+        const messages = this.getMessages(channel);
+        if (!messages || !lastReadMessage)
+            return false; // Maybe?
+
+        let startIndex = messages.findIndex(m => m.message_id === lastReadMessage);
+        if (startIndex < 0)
+            return false;
+
+        startIndex++;
+        for (let i = startIndex; i < messages.length; i++) {
+            if (messages[i].isPing)
+                return true;
+        }
+
+        return false;
+    };
+
+    private hasPingWord = (message: string) => {
+        const content = message.split(" ");
+        for (const pingWord of this.pingWords) {
+            if (content.includes(pingWord))
+                return true;
+        }
+
+        return false;
     }
 
     sendMessage(channel: string, text: string) {

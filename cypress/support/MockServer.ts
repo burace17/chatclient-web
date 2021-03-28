@@ -36,6 +36,7 @@ export class MockServer {
                 cmd: "WELCOME",
                 name: "test",
                 channels: this.channels,
+                nickname: user.nickname,
                 viewing: []
             };
             sock.send(JSON.stringify(welcomePkt));

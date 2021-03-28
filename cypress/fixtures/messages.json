@@ -520,14 +520,26 @@
             }
         ]
     },
-    "#test2": {
-        "last_read_message": 109,
+    "#z": {
+        "last_read_message": 1,
         "messages": [
             {
-                "content": "........",
-                "message_id": 109,
+                "content": "@testuser history ping test",
+                "message_id": 2,
                 "nickname": "test",
-                "time": 1615152553,
+                "time": 1615710186,
+                "user": {
+                    "id": 1,
+                    "nickname": "test",
+                    "status": "Online",
+                    "username": "test"
+                }
+            },
+            {
+                "content": "mailto:test@test.com",
+                "message_id": 1,
+                "nickname": "test",
+                "time": 1615682221,
                 "user": {
                     "id": 1,
                     "nickname": "test",

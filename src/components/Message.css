@@ -5,7 +5,7 @@
 
 @media(hover: hover) and (pointer: fine) {
     .message:hover {
-        background-color: gray;
+        background-color: rgba(128, 128, 128, 0.5);
     }
 }
 
@@ -19,4 +19,8 @@
 
 .nickname {
     color: darkgray;
+}
+
+.message-content-pinged {
+    background-color: rgba(255, 215, 15, 0.2);
 }

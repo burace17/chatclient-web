@@ -34,6 +34,12 @@ describe("Messages", () => {
             id: 2,
             name: "#testing",
             users: [testUser]
+        },
+        {
+            address: "",
+            id: 3,
+            name: "#z",
+            users: [testUser]
         }
     ];
 
@@ -110,6 +116,25 @@ describe("Messages", () => {
 
         cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button")
             .should("not.have.class", "channel-button-unread");
+    });
+
+    it("containing ping words update the server tree", () => {
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button")
+            .should("not.have.class", "channel-button-ping")
+            .then(() => {
+                mockServer.sendMessage(otherUser, "#testing", "@testuser ping");
+            });
+        cy.get(":nth-child(2) > .react-contextmenu-wrapper > .channel-button")
+            .should("have.class", "channel-button-ping")
+            .click()
+            .should("not.have.class", "channel-button-ping")
+            .should("not.have.class", "channel-button-unread");
+        cy.get(":nth-child(3) > .react-contextmenu-wrapper > .channel-button")
+            .should("have.class", "channel-button-ping")
+            .click()
+            .should("not.have.class", "channel-button-ping")
+            .should("not.have.class", "channel-button-unread");
+        cy.get(":nth-child(2) > .message-content").should("have.class", "message-content-pinged");
     });
 
     /*

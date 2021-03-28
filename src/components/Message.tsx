@@ -46,11 +46,12 @@ export default class Message extends React.Component<Properties> {
 
     render() {
         const msg = this.props.message;
+        const className = msg.isPing ? "message-content message-content-pinged" : "message-content";
         if (msg.nickname) {
             return (
                 <li key={msg.message_id} className="message">
                     {this.props.showTime && this.formatTime(msg.time)}
-                    <div className="message-content">
+                    <div className={className}>
                         <span className="nickname">{msg.nickname}</span>: {this.formatMessage(msg.message_id, msg.content)}
                     </div>
                 </li>
