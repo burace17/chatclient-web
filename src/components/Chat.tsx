@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
  
 import "./Chat.css";
+import React from "react";
 import MessageList from "./MessageList";
 import EntryBox from "./EntryBox";
 import { ClientMessage } from "../net/client";
@@ -13,13 +14,22 @@ interface Properties {
     canSendMessage: boolean;
 }
 
-function Chat(props: Properties) {
-    return (
-        <div className="Chat">
-            <MessageList messages={props.messages} />
-            <EntryBox onSendMessage={props.onSendMessage} canSendMessage={props.canSendMessage} />
-        </div>
-    );
+export class Chat extends React.Component<Properties> {
+    private entryBoxRef: React.RefObject<EntryBox> = React.createRef();
+
+    focusEntryBox() {
+        this.entryBoxRef.current?.focus();
+    }
+
+    render() {
+        return (
+            <div className="Chat">
+                <MessageList messages={this.props.messages} />
+                <EntryBox onSendMessage={this.props.onSendMessage} canSendMessage={this.props.canSendMessage} 
+                    ref={this.entryBoxRef} />
+            </div>
+        );
+    }
 }
 
 export default Chat;

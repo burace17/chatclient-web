@@ -90,6 +90,7 @@ function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
 
 class App extends React.Component<Properties, State> {
     private clients: Map<string, Client> = new Map<string, Client>();
+    private chatRef: React.RefObject<Chat> = React.createRef();
     constructor(props: Properties) {
         super(props);
         this.state = {
@@ -118,6 +119,8 @@ class App extends React.Component<Properties, State> {
         window.removeEventListener("focus", this.onWindowGotFocus);
         window.removeEventListener("blur", this.onWindowLostFocus);
     }
+
+    private focusEntryBox = () => this.chatRef.current?.focusEntryBox();
 
     private getStoredServers = async () => {
         if (window.credentialManager) {
@@ -226,7 +229,7 @@ class App extends React.Component<Properties, State> {
             currentChannelMessages: messages,
             currentChannelUsers: users,
             canSendMessage: client?.isConnected() ?? false
-        });
+        }, () => this.focusEntryBox());
     }
 
     private onMessageReceived = (addr: string, channel: string, message?: ClientMessage) => {
@@ -294,7 +297,7 @@ class App extends React.Component<Properties, State> {
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
             selectedTreeItem: { address }
-        });
+        }, () => this.focusEntryBox());
     }
 
     private onConnectionClose = (address: string) => {
@@ -375,7 +378,7 @@ class App extends React.Component<Properties, State> {
                         selectedChannel={this.state.selectedTreeItem} onSelectedChannelChanged={this.onTreeSelectionChanged}
                         isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
                     <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage}
-                        canSendMessage={this.state.canSendMessage} />
+                        canSendMessage={this.state.canSendMessage} ref={this.chatRef} />
                     <UserList isHidden={this.state.hideUserList} users={this.state.currentChannelUsers} />
                 </div>
             </div>

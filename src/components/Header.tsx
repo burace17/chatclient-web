@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
  
+import React from "react";
 import "../App.css";
 import "./Header.css";
 
@@ -22,15 +23,19 @@ function BurgerButton() {
 }
 
 function Header(props: Properties) {
+    // this is to prevent the on screen keyboard on mobile devices from disappearing
+    // when clicking these buttons.
+    const mouseDown = (e: React.MouseEvent) => e.preventDefault();
+
     return (
         <div className="header">
             <button className="burger-button" onClick={props.onToggleServerTree}
-                title="Toggle Server List" data-cy="toggle-server-list">
+                onMouseDown={mouseDown} title="Toggle Server List" data-cy="toggle-server-list">
                 {BurgerButton()}
             </button>
             <span className="channel-name">{props.channel}</span>
             <button className="burger-button" onClick={props.onToggleUserList}
-                title="Toggle User List" data-cy="toggle-user-list">
+                onMouseDown={mouseDown} title="Toggle User List" data-cy="toggle-user-list">
                 {BurgerButton()}
             </button>
         </div>
