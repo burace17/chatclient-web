@@ -1,7 +1,11 @@
 .message-list {
     flex: auto;
     list-style-type: none;
+    overflow-x: hidden;
     overflow-y: auto;
     overflow-wrap: break-word;
+    word-break: break-all;
+    -webkit-hyphens: auto;
+    hyphens: auto;
     width: 100%;
 }
