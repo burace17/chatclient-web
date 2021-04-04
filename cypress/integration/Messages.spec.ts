@@ -59,6 +59,7 @@ describe("Messages", () => {
 
         cy.mockSockets();
         cy.stubNotifications();
+        cy.intercept("https://0.0.0.0/image.jpg", { fixture: "images/jeb.jpg" });
         cy.visit("/").then(() => cy.login("ws://0.0.0.0:1337", "testuser", "test"));
     });
 
@@ -135,6 +136,15 @@ describe("Messages", () => {
             .should("not.have.class", "channel-button-ping")
             .should("not.have.class", "channel-button-unread");
         cy.get(":nth-child(2) > .message-content").should("have.class", "message-content-pinged");
+    });
+
+    it("containing URLs pointing to images show the image", () => {
+        cy.get(":nth-child(43) > [data-cy=message-attachments] > li > a > .image").should("exist").then(() => {
+            const url = "https://0.0.0.0/image.jpg";
+            const message_id = mockServer.sendMessage(otherUser, "#general", `blah ${url}`);
+            mockServer.fakeAddAttachment("#general", message_id, url, "image/jpeg");
+        });
+        cy.get(":nth-child(44) > [data-cy=message-attachments] > li > a > .image").should("exist");
     });
 
     /*

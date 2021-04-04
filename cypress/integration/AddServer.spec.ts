@@ -4,13 +4,13 @@
 
 import { Server } from "mock-socket";
 describe("Add Server", () => {
-    let mockServer: Server = undefined;
+    let mockServer: Server | null = null;
     beforeEach(() => {
         mockServer?.close();
 
         mockServer = new Server("ws://0.0.0.0:1337");
         mockServer.on("connection", sock => {
-            sock.on("message", (message: string) => {
+            sock.on("message", _ => {
                 const packet = {
                     "cmd": "WELCOME",
                     "name": "test",

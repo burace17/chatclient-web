@@ -59,7 +59,7 @@ export class MockServer {
             };
 
             this.viewedChannel = this.channels.find(c => c.name === message.channel) ?? null;
-            this.socket.send(JSON.stringify(packet));
+            this.socket?.send(JSON.stringify(packet));
         }
         else if (message.cmd === "NOTVIEWING") {
             this.notifyNotViewingChannels();
@@ -81,24 +81,24 @@ export class MockServer {
                 cmd: "CHANNELINFO",
                 channel
             };
-            this.socket.send(JSON.stringify(channelInfoPacket));
+            this.socket?.send(JSON.stringify(channelInfoPacket));
         }
     };
 
-    setMessages = (channel: string, messagesHolder: MessagesHolder) => {
+    setMessages(channel: string, messagesHolder: MessagesHolder) {
         messagesHolder.messages = messagesHolder.messages.reverse();
         this.messages.set(channel, messagesHolder);
     };
 
-    start = () => {
+    start() {
         this.server.start();
     };
 
-    stop = () => {
+    stop() {
         this.server.stop();
     };
 
-    sendMessage = (user: User, channel: string, content: string) => {
+    sendMessage(user: User, channel: string, content: string) {
         const messageHolder = this.messages.get(channel);
         const message_id = messageHolder.messages[messageHolder.messages.length - 1].message_id + 1;
         const time = Math.floor(Date.now() / 1000);
@@ -121,9 +121,21 @@ export class MockServer {
         };
         messageHolder.messages.push(clientMessage);
         this.socket?.send(JSON.stringify(packet));
+        return message_id;
     };
 
-    fakeJoin = (user: User, channel: string) => {
+    fakeAddAttachment(channel: string, message_id: number, url: string, mime: string) {
+        const packet = {
+            cmd: "ADDATTACHMENT",
+            channel,
+            message_id,
+            url,
+            mime
+        };
+        this.socket?.send(JSON.stringify(packet));
+    };
+
+    fakeJoin(user: User, channel: string) {
         const packet = {
             cmd: "JOIN",
             channel,
@@ -132,7 +144,7 @@ export class MockServer {
         this.socket?.send(JSON.stringify(packet));
     };
 
-    fakeStatusUpdate = (user: User) => {
+    fakeStatusUpdate(user: User) {
         const packet = {
             cmd: "STATUS",
             user
@@ -164,7 +176,7 @@ export class MockServer {
                 message_id: lastMessageId
             };
             this.viewedChannel = null;
-            this.socket.send(JSON.stringify(noViewers));
+            this.socket?.send(JSON.stringify(noViewers));
         }
     };
 }

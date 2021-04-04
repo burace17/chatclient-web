@@ -8,7 +8,8 @@
         "types": [
             "cypress"
         ],
-        "downlevelIteration": true
+        "downlevelIteration": true,
+        "esModuleInterop": true
     },
     "include": [
         "**/*.ts"

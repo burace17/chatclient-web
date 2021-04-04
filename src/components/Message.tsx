@@ -70,7 +70,7 @@ function renderAttachments(attachments: MessageAttachment[], onImageLoad: () => 
     return elements;
 }
 
-export default class Message extends React.PureComponent<Properties> {
+export default class Message extends React.Component<Properties> {
     private urlMatcher: RegExp = urlRegex({ strict: true });
 
     render() {
@@ -84,7 +84,7 @@ export default class Message extends React.PureComponent<Properties> {
                     <div className={className}>
                         <span className="nickname">{msg.nickname}</span>: {formatMessage(this.urlMatcher, msg.content)}
                     </div>
-                    <ul>
+                    <ul data-cy="message-attachments">
                         {renderAttachments(msg.attachments, onImageLoad)}
                     </ul>
                 </li>
