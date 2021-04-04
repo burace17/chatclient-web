@@ -10,11 +10,11 @@ test("Message list grouping", () => {
     const date = new Date();
     const now = Math.floor(date.getTime() / 1000);
     const messages: ClientMessage[] = [
-        {message_id: 1, time: 1613536972, content: "hello world", nickname: "testuser"},
-        {message_id: 2, time: 1613536980, content: "my message", nickname: "testuser"},
-        {message_id: 3, time: 1613536990, content: "this works?", nickname: "otheruser"},
-        {message_id: 4, time: now, content: "don't group this", nickname: "otheruser"},
-        {message_id: 5, time: now + 10, content: "but make sure we group this", nickname: "testuser"}
+        {message_id: 1, time: 1613536972, content: "hello world", nickname: "testuser", attachments: []},
+        {message_id: 2, time: 1613536980, content: "my message", nickname: "testuser", attachments: []},
+        {message_id: 3, time: 1613536990, content: "this works?", nickname: "otheruser", attachments: []},
+        {message_id: 4, time: now, content: "don't group this", nickname: "otheruser", attachments: []},
+        {message_id: 5, time: now + 10, content: "but make sure we group this", nickname: "testuser", attachments: []}
     ];
 
     render(<MessageList messages={messages} />);

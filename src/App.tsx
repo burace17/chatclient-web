@@ -136,7 +136,8 @@ class App extends React.Component<Properties, State> {
             newState.push({
                 message_id: Math.random(),
                 time: Date.now() / 1000,
-                content: text
+                content: text,
+                attachments: []
             });
 
             return { currentChannelMessages: newState };

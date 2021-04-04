@@ -6,9 +6,15 @@ export interface ClientMessage {
     message_id: number;
     time: number;
     content: string;
+    attachments: MessageAttachment[];
     user?: User;
     nickname?: string;
     isPing?: boolean;
+}
+
+export interface MessageAttachment {
+    url: string;
+    mime: string;
 }
 
 export enum UserStatus {
@@ -170,6 +176,9 @@ class Client {
         case "NOVIEWERS":
             this.handleNoViewers(message);
             break;
+        case "ADDATTACHMENT":
+            this.handleAddAttachment(message);
+            break;
         default:
             console.log("Got message with unknown command: " + evt.data);
             break;
@@ -202,7 +211,8 @@ class Client {
             content: message.content,
             time: message.time,
             user: message.user,
-            nickname: message.user.nickname
+            nickname: message.user.nickname,
+            attachments: []
         };
         msg.isPing = this.hasPingWord(msg.content);
         msgs?.push(msg);
@@ -276,6 +286,18 @@ class Client {
         //console.log("handleNoViewers(): " + data.channel + " is no longer being viewed");
         this.lastRead.set(data.channel, data.message_id);
         this.channelsBeingViewed.delete(data.channel);
+    };
+
+    private handleAddAttachment = (data: any) => {
+        const channelMessages = this.channelMessages.get(data.channel);
+        const message = channelMessages?.find(m => m.message_id === data.message_id);
+        if (message) {
+            message.attachments.push({
+                url: data.url,
+                mime: data.mime
+            });
+            this.props.onMessage(this.props.address, data.channel);
+        }
     };
 
     private updateChannelStatus = (name: string) => {

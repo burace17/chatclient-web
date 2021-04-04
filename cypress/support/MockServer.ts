@@ -116,7 +116,8 @@ export class MockServer {
             content,
             user,
             nickname: user.nickname,
-            time
+            time,
+            attachments: []
         };
         messageHolder.messages.push(clientMessage);
         this.socket?.send(JSON.stringify(packet));

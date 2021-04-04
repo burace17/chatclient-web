@@ -8,9 +8,9 @@ import EntryBox from "./EntryBox";
 import { ClientMessage } from "../net/client";
 
 interface Properties {
-    messages: Array<ClientMessage>
-    onSendMessage: (text: string) => void
-    canSendMessage: boolean
+    messages: Array<ClientMessage>;
+    onSendMessage: (text: string) => void;
+    canSendMessage: boolean;
 }
 
 function Chat(props: Properties) {

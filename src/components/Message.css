@@ -24,3 +24,8 @@
 .message-content-pinged {
     background-color: rgba(255, 215, 15, 0.2);
 }
+
+.image {
+    max-height: 400px;
+    max-width: 400px;
+}

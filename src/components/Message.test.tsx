@@ -12,14 +12,14 @@ test("Message link formatting", () => {
 
     // boolean represents if there should be a link for that test case
     const messages: [ClientMessage, boolean][] = [
-        [{message_id: 1, time: 1613536972, content: "hello world", nickname: "testuser"}, false],
-        [{message_id: 2, time: 1613536980, content: "linkhttps://google.com", nickname: "testuser"}, true],
-        [{message_id: 3, time: 1613536990, content: "this works? http://github.com", nickname: "otheruser"}, true],
+        [{message_id: 1, time: 1613536972, content: "hello world", nickname: "testuser", attachments: []}, false],
+        [{message_id: 2, time: 1613536980, content: "linkhttps://google.com", nickname: "testuser", attachments: []}, true],
+        [{message_id: 3, time: 1613536990, content: "this works? http://github.com", nickname: "otheruser", attachments: []}, true],
 
         // I don't really want to allow FTP but I need to adjust the library I'm using to detect links first.
         //[{message_id: 4, time: now, content: "not this.. ftp://github.com", nickname: "otheruser"}, false],
 
-        [{message_id: 5, time: now + 10, content: "or this file:///root", nickname: "testuser"}, false]
+        [{message_id: 5, time: now + 10, content: "or this file:///root", nickname: "testuser", attachments: []}, false]
     ];
 
     const testMessage = (message: ClientMessage, hasLink: boolean) => {
