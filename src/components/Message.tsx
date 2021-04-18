@@ -84,9 +84,9 @@ export default class Message extends React.Component<Properties> {
                     <div className={className}>
                         <span className="nickname">{msg.nickname}</span>: {formatMessage(this.urlMatcher, msg.content)}
                     </div>
-                    <ul data-cy="message-attachments">
+                    {msg.attachments.length > 0 && <ul data-cy="message-attachments">
                         {renderAttachments(msg.attachments, onImageLoad)}
-                    </ul>
+                    </ul>}
                 </li>
             );
         }

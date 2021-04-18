@@ -56,6 +56,7 @@ export interface ClientProperties {
     onReceiveChannelInfo: (addr: string, channel: Channel) => void;
     onUserStatusUpdate: (addr: string, user: User) => void;
     onChannelBeingViewed: () => void;
+    onReceiveMessageHistory: () => void;
 }
 
 export function compareChannel(a: Channel, b: Channel) {
@@ -76,14 +77,26 @@ class Client {
     private ws: WebSocket;
     private readonly props: ClientProperties;
     private serverName: string;
+
     private channels: Channel[] = [];
+
+    private gotHistory = false;
+
+    // This stores the messages currently loaded for each channel
+    // There may be significantly more on the server which we don't know about
     private channelMessages = new Map<string, ClientMessage[]>();
+
+    // This stores the number of new messages waiting to be read on the server
+    private channelMessagesOnServer = new Map<string, number>();
+
     private lastRead = new Map<string, number | null>();
     private channelsBeingViewed = new Set<string>();
+
     private hasQuit: boolean = false;
     private quitReason: string | undefined;
     private quitCode: number | undefined;
     private sendRegistrationFirst: boolean = false;
+
     private pingWords: Set<string> = new Set<string>();
 
     constructor(props: ClientProperties, shouldRegister: boolean) {
@@ -216,6 +229,7 @@ class Client {
         };
         msg.isPing = this.hasPingWord(msg.content);
         msgs?.push(msg);
+
         this.updateChannelStatus(message.channel);
         this.props.onMessage(this.props.address, message.channel, msg);
     };
@@ -242,13 +256,15 @@ class Client {
         const channel = appendAddress(message.channel, this.props.address);
         this.channels.push(channel);
         this.channelMessages.set(channel.name, []);
+        this.channelMessagesOnServer.set(channel.name, 0);
         this.props.onReceiveChannelInfo(this.props.address, channel);
     };
 
     private handleChannelHistory = (data: any) => {
         interface ChannelHistoryEntry {
-            last_read_message: number | null,
+            last_read_message: number | null;
             messages: ClientMessage[];
+            messages_after: number;
         };
         interface ChannelHistory {
             channelName: string,
@@ -266,16 +282,20 @@ class Client {
                     msg.isPing = this.hasPingWord(msg.content);
                 this.channelMessages.set(channelName, mergedMessages);
                 this.lastRead.set(channelName, entry.last_read_message);
-                //console.log(`history: ${channelName} last read message was ${entry.last_read_message}`);
+                this.channelMessagesOnServer.set(channelName, entry.messages_after);
+                console.log(`history: ${channelName} last read message was ${entry.last_read_message}`);
                 this.updateChannelStatus(channelName);
-                this.props.onMessage(this.props.address, channelName);
+                //this.props.onMessage(this.props.address, channelName);
             }
         }
+
+        this.gotHistory = true;
+        this.props.onReceiveMessageHistory();
     };
 
     private handleGotViewer = (data: any) => {
         const channel = data.channel;
-        //console.log("handleGotViewer(): " + channel + " is being viewed");
+        console.log("handleGotViewer(): " + channel + " is being viewed");
         this.lastRead.set(channel, null);
         this.channelsBeingViewed.add(channel);
         this.updateChannelStatus(data.channel);
@@ -283,7 +303,7 @@ class Client {
     };
 
     private handleNoViewers = (data: any) => {
-        //console.log("handleNoViewers(): " + data.channel + " is no longer being viewed");
+        console.log("handleNoViewers(): " + data.channel + " is no longer being viewed");
         this.lastRead.set(data.channel, data.message_id);
         this.channelsBeingViewed.delete(data.channel);
     };
@@ -350,10 +370,34 @@ class Client {
         return this.channelsBeingViewed.has(channel.name);
     }
 
-    private getLastMessageId = (channel: Channel) => {
+    getUnreadMessagesOnServer(channel: Channel) {
+        return this.channelMessagesOnServer.get(channel.name) ?? 0;
+    }
+
+    getLastReadMessage(channel: Channel) {
         const messages = this.getMessages(channel);
-        if (messages.length > 0)
-            return messages[messages.length - 1].message_id;
+        const lastRead = this.lastRead.get(channel.name) ?? null;
+        if (lastRead) {
+            const index = messages.findIndex(m => m.message_id === lastRead);
+            if (index === -1)
+                return undefined;
+            else
+                return index;
+        }
+        else
+            return undefined;
+    }
+
+    hasHistory() {
+        return this.gotHistory;
+    }
+
+    getLastMessageId(channel: Channel) {
+        const messages = this.getMessages(channel);
+        if (messages.length > 0) {
+            //return messages[messages.length - 1].message_id;
+            return Math.max(...messages.map(m => m.message_id));
+        }
         else
             return null;
     };
@@ -362,6 +406,7 @@ class Client {
         const lastReadMessage = this.lastRead.get(channel.name) ?? null;
         const lastMessageId = this.getLastMessageId(channel);
         const isBeingViewed = this.isBeingViewed(channel);
+        console.log(`hasUnreadMessages(): lastReadMessage: ${lastReadMessage}, lastMessageId: ${lastMessageId}, isBeingViewed: ${isBeingViewed}`);
 
         return !isBeingViewed && lastReadMessage !== lastMessageId;
     };
@@ -427,15 +472,18 @@ class Client {
     }
 
     notifyViewingChannel(channel: string) {
-        const packet = {
-            "cmd": "VIEWING",
-            "channel": channel
-        };
+        if (this.gotHistory && !this.channelsBeingViewed.has(channel)) {
+            const packet = {
+                "cmd": "VIEWING",
+                "channel": channel,
+            };
 
-        this.send(JSON.stringify(packet));
+            this.send(JSON.stringify(packet));
+        }
     }
 
     notifyNotViewingChannels() {
+        console.log("notifynotviewingchannels");
         const packet = {
             "cmd": "NOTVIEWING",
         };

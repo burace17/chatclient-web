@@ -6,8 +6,9 @@ import React from "react";
 import "./App.css";
 import Header from "./components/Header";
 import ServerTree from "./components/ServerTree";
-import Chat from "./components/Chat";
 import UserList from "./components/UserList";
+import EntryBox from "./components/EntryBox";
+import MessageList from "./components/MessageList";
 import Client from "./net/client";
 import { ClientMessage, ClientProperties, User, Channel } from "./net/client";
 
@@ -65,9 +66,13 @@ interface State {
     selectedTreeItem: ServerSelection;
     currentChannelMessages: ClientMessage[]
     currentChannelUsers: User[];
+    currentChannelMessagesOnServer: number;
+    currentChannelLastReadMessage: number | undefined;
     hideServerTree: boolean;
     hideUserList: boolean;
     canSendMessage: boolean;
+    messageListAtBottom: boolean;
+    windowHasFocus: boolean;
 }
 
 function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
@@ -90,7 +95,8 @@ function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
 
 class App extends React.Component<Properties, State> {
     private clients: Map<string, Client> = new Map<string, Client>();
-    private chatRef: React.RefObject<Chat> = React.createRef();
+    private entryBoxRef: React.RefObject<EntryBox> = React.createRef();
+    private messageListRef: React.RefObject<MessageList> = React.createRef();
     constructor(props: Properties) {
         super(props);
         this.state = {
@@ -98,9 +104,13 @@ class App extends React.Component<Properties, State> {
             selectedTreeItem: null,
             currentChannelMessages: [],
             currentChannelUsers: [],
+            currentChannelMessagesOnServer: 0,
+            currentChannelLastReadMessage: undefined,
             hideServerTree: false,
             hideUserList: false,
             canSendMessage: false,
+            messageListAtBottom: true,
+            windowHasFocus: true
         };
 
         // Hack to allow tests to access the instance of this component
@@ -120,7 +130,9 @@ class App extends React.Component<Properties, State> {
         window.removeEventListener("blur", this.onWindowLostFocus);
     }
 
-    private focusEntryBox = () => this.chatRef.current?.focusEntryBox();
+    private focusEntryBox = () => this.entryBoxRef.current?.focus();
+
+    private scrollToLastViewedMessage = () => this.messageListRef.current?.scrollToLastViewed();
 
     private getStoredServers = async () => {
         if (window.credentialManager) {
@@ -168,12 +180,15 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWindowGotFocus = () => {
+        this.setState({
+            windowHasFocus: true
+        });
         const channel = this.state.selectedTreeItem as Channel;
         if (!channel)
             return;
 
         const client = this.clients.get(channel.address);
-        if (client && channel.name)
+        if (client && channel.name && client.getLastReadMessage(channel) === client.getLastMessageId(channel))
             client.notifyViewingChannel(channel.name);
         // In the future, we should check that the last message is actually in view.
         // Right now it always should be since we are still scrolling the page even when the document is hidden.
@@ -181,6 +196,9 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWindowLostFocus = () => {
+        this.setState({
+            windowHasFocus: false
+        });
         const channel = this.state.selectedTreeItem as Channel;
         if (!channel)
             return;
@@ -206,6 +224,8 @@ class App extends React.Component<Properties, State> {
     private onTreeSelectionChanged = (newSelection: ServerSelection) => {
         let messages: ClientMessage[] = [];
         let users: User[] = [];
+        let messagesOnServer = 0;
+        let lastReadMessage: number | undefined = undefined;
         const newChannel = newSelection as Channel;
         const client = this.clients.get(newChannel.address);
 
@@ -216,20 +236,31 @@ class App extends React.Component<Properties, State> {
         if (newChannel.name && client) {
             messages = client.getMessages(newChannel) ?? [];
             users = newChannel.users;
+            messagesOnServer = client.getUnreadMessagesOnServer(newChannel);
+            lastReadMessage = client.getLastReadMessage(newChannel);
             document.title = newChannel.name + " - Chat Client";
-            client.notifyViewingChannel(newChannel.name);
         }
         else {
             document.title = "Chat Client";
             client?.notifyNotViewingChannels();
         }
 
+        const afterSetState = () => {
+            this.focusEntryBox();
+            this.scrollToLastViewedMessage();
+            if (client?.getLastMessageId(newChannel) === lastReadMessage) {
+                client?.notifyViewingChannel(newChannel.name);
+            }
+        };
+
         this.setState({
             selectedTreeItem: newChannel,
             currentChannelMessages: messages,
             currentChannelUsers: users,
+            currentChannelMessagesOnServer: messagesOnServer,
+            currentChannelLastReadMessage: lastReadMessage,
             canSendMessage: client?.isConnected() ?? false
-        }, () => this.focusEntryBox());
+        }, afterSetState);
     }
 
     private onMessageReceived = (addr: string, channel: string, message?: ClientMessage) => {
@@ -240,7 +271,11 @@ class App extends React.Component<Properties, State> {
         const isChannelActive = addr === currentChannel.address && channel === currentChannel.name;
         if (isChannelActive) {
             const messages = client.getMessages(currentChannel);
-            this.setState({ currentChannelMessages: messages });
+            this.setState({ 
+                currentChannelMessages: messages,
+                currentChannelMessagesOnServer: client.getUnreadMessagesOnServer(currentChannel),
+                currentChannelLastReadMessage: client.getLastReadMessage(currentChannel)
+            });
         }
         else {
             this.setState({ serverNames: getNamesAndAddresses(this.clients) });
@@ -252,11 +287,6 @@ class App extends React.Component<Properties, State> {
     }
 
     private onWelcome = (addr: string, channels: Array<Channel>) => {
-        const channel = this.state.selectedTreeItem as Channel;
-        if (!channel.name && channels.length > 0) {
-            this.onTreeSelectionChanged(channels[0]);
-        }
-
         this.setState({
             serverNames: getNamesAndAddresses(this.clients),
             canSendMessage: this.state.selectedTreeItem !== null,
@@ -286,7 +316,8 @@ class App extends React.Component<Properties, State> {
             onJoin: this.onJoin,
             onReceiveChannelInfo: this.onReceiveChannelInfo,
             onUserStatusUpdate: this.onUserStatusUpdate,
-            onChannelBeingViewed: () => this.setState({ serverNames: getNamesAndAddresses(this.clients) })
+            onChannelBeingViewed: () => this.setState({ serverNames: getNamesAndAddresses(this.clients) }),
+            onReceiveMessageHistory: this.onReceiveChannelHistory
         };
 
         if (persist && window.credentialManager) {
@@ -330,6 +361,8 @@ class App extends React.Component<Properties, State> {
                 this.setState({
                     currentChannelMessages: [],
                     currentChannelUsers: [],
+                    currentChannelMessagesOnServer: 0,
+                    currentChannelLastReadMessage: undefined,
                     canSendMessage: false
                 });
             }
@@ -368,6 +401,34 @@ class App extends React.Component<Properties, State> {
         this.onTreeSelectionChanged(channel);
     }
 
+    private onBottomStateChanged = (atBottom: boolean) => {
+        const channel = this.state.selectedTreeItem as Channel;
+        if (channel && channel.name) {
+            const client = this.clients.get(channel.address);
+            if (atBottom && client && this.state.windowHasFocus) {
+                client.notifyViewingChannel(channel.name);
+            }
+        }
+        this.setState({
+            messageListAtBottom: atBottom
+        });
+    }
+
+    private onReceiveChannelHistory = () => {
+        const channel = this.state.selectedTreeItem as Channel;
+        if (!channel.address)
+            return;
+
+        const client = this.clients.get(channel.address);
+        if (!client)
+            return;
+
+        const channels = client.getChannels();
+        if (!channel.name && channels.length > 0) {
+            this.onTreeSelectionChanged(channels[0]);
+        }
+    }
+
     render() {
         return (
             <div className="App">
@@ -377,8 +438,15 @@ class App extends React.Component<Properties, State> {
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
                         selectedChannel={this.state.selectedTreeItem} onSelectedChannelChanged={this.onTreeSelectionChanged}
                         isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
-                    <Chat messages={this.state.currentChannelMessages} onSendMessage={this.onSendMessage}
-                        canSendMessage={this.state.canSendMessage} ref={this.chatRef} />
+                    <div className="chat-box">
+                        <MessageList messages={this.state.currentChannelMessages} messagesOnServer={this.state.currentChannelMessagesOnServer} 
+                            lastViewedMessage={this.state.currentChannelLastReadMessage} 
+                            onBottomStateChanged={this.onBottomStateChanged} 
+                            windowHasFocus={this.state.windowHasFocus} 
+                            ref={this.messageListRef} />
+                        <EntryBox onSendMessage={this.onSendMessage} canSendMessage={this.state.canSendMessage} 
+                            ref={this.entryBoxRef} />
+                    </div>
                     <UserList isHidden={this.state.hideUserList} users={this.state.currentChannelUsers} />
                 </div>
             </div>
