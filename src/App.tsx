@@ -64,6 +64,7 @@ export type ServerSelection = Server | Channel | null;
 interface State {
     serverNames: ServerInfo[];
     selectedTreeItem: ServerSelection;
+    currentChannelName: string;
     currentChannelMessages: ClientMessage[]
     currentChannelUsers: User[];
     currentChannelMessagesOnServer: number;
@@ -102,6 +103,7 @@ class App extends React.Component<Properties, State> {
         this.state = {
             serverNames: [],
             selectedTreeItem: null,
+            currentChannelName: "",
             currentChannelMessages: [],
             currentChannelUsers: [],
             currentChannelMessagesOnServer: 0,
@@ -132,7 +134,7 @@ class App extends React.Component<Properties, State> {
 
     private focusEntryBox = () => this.entryBoxRef.current?.focus();
 
-    private scrollToLastViewedMessage = () => this.messageListRef.current?.scrollToLastViewed();
+    private scrollToEnd = () => this.messageListRef.current?.scrollToEnd();
 
     private getStoredServers = async () => {
         if (window.credentialManager) {
@@ -230,6 +232,10 @@ class App extends React.Component<Properties, State> {
         const client = this.clients.get(newChannel.address);
 
         const oldClient = this.clients.get(this.state.selectedTreeItem?.address ?? "");
+        const oldChannel = this.state.selectedTreeItem as Channel;
+        if (oldChannel.address === newChannel.address && oldChannel.name === newChannel.name)
+            return;
+
         if (oldClient && oldClient !== client)
             oldClient.notifyNotViewingChannels();
 
@@ -247,14 +253,17 @@ class App extends React.Component<Properties, State> {
 
         const afterSetState = () => {
             this.focusEntryBox();
-            this.scrollToLastViewedMessage();
             if (client?.getLastMessageId(newChannel) === lastReadMessage) {
                 client?.notifyViewingChannel(newChannel.name);
+            }
+            else {
+                client?.notifyNotViewingChannels();
             }
         };
 
         this.setState({
             selectedTreeItem: newChannel,
+            currentChannelName: newChannel?.name ?? "",
             currentChannelMessages: messages,
             currentChannelUsers: users,
             currentChannelMessagesOnServer: messagesOnServer,
@@ -275,7 +284,7 @@ class App extends React.Component<Properties, State> {
                 currentChannelMessages: messages,
                 currentChannelMessagesOnServer: client.getUnreadMessagesOnServer(currentChannel),
                 currentChannelLastReadMessage: client.getLastReadMessage(currentChannel)
-            });
+            }, () => this.scrollToEnd());
         }
         else {
             this.setState({ serverNames: getNamesAndAddresses(this.clients) });
@@ -432,14 +441,15 @@ class App extends React.Component<Properties, State> {
     render() {
         return (
             <div className="App">
-                <Header channel={(this.state.selectedTreeItem as Channel)?.name ?? ""} onToggleServerTree={this.onToggleServerTree}
+                <Header channel={this.state.currentChannelName} onToggleServerTree={this.onToggleServerTree}
                     onToggleUserList={this.onToggleUserList} />
                 <div className="App-container">
                     <ServerTree onServerAdded={this.onServerAdded} connectedServers={this.state.serverNames}
                         selectedChannel={this.state.selectedTreeItem} onSelectedChannelChanged={this.onTreeSelectionChanged}
                         isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
                     <div className="chat-box">
-                        <MessageList messages={this.state.currentChannelMessages} messagesOnServer={this.state.currentChannelMessagesOnServer} 
+                        <MessageList key={this.state.currentChannelName} 
+                            messages={this.state.currentChannelMessages} messagesOnServer={this.state.currentChannelMessagesOnServer} 
                             lastViewedMessage={this.state.currentChannelLastReadMessage} 
                             onBottomStateChanged={this.onBottomStateChanged} 
                             windowHasFocus={this.state.windowHasFocus} 

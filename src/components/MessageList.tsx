@@ -49,35 +49,29 @@ class MessageList extends React.Component<Properties, State> {
         };
     }
 
-    scrollToLastViewed() {
-        /*if (this.props.lastViewedMessage) {
-            //const msgs = this.props.messages.sort((a,b) => b.time - a.time);
-            const index = this.props.messages.findIndex(msg => msg.message_id === this.props.lastViewedMessage);
-            console.log(`last message id: ${this.props.lastViewedMessage}, index: ${index}`);
-            this.listRef.current?.scrollToIndex(index);
-        }*/
+    scrollToEnd() {
+        if (this.props.messages.length > 0) {
+            console.log("scrolling to end");
+            const index = this.props.messages.length - 1;
+            requestAnimationFrame(() => this.listRef.current?.scrollToIndex(index));
+        }
     }
 
     componentDidMount() {
-        //this.scrollToLastViewed();
+        console.log("mounted, last read: " + this.props.lastViewedMessage);
+        console.log("mount, number of messages: " + this.props.messages?.length);
     }
 
     render() {
         const msgs = groupMessages(Array.from(this.props.messages), 60);
-        /*const endReeached = (index: number) => {
-            console.log("end reached: " + index);
-            this.props.onBottomStateChanged(true);
-        };
-        const bottomStateChanged = (state: boolean) => {
-            console.log(`bottom state changed: ${state}`);
-        };*/
+        console.log("render, last read: " + this.props.lastViewedMessage);
         return (
             <Virtuoso totalCount={msgs.length} 
                 itemContent={index => msgs[index]} 
-                followOutput={false}
                 className="message-list scrollbar"
-                initialTopMostItemIndex={this.props.lastViewedMessage}
-                atBottomStateChange={this.props.onBottomStateChanged}/>
+                initialTopMostItemIndex={this.props.lastViewedMessage ?? this.props.messages.length - 1}
+                atBottomStateChange={this.props.onBottomStateChanged}
+                ref={this.listRef}/>
         );
     }
 }

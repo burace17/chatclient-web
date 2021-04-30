@@ -377,15 +377,11 @@ class Client {
     getLastReadMessage(channel: Channel) {
         const messages = this.getMessages(channel);
         const lastRead = this.lastRead.get(channel.name) ?? null;
-        if (lastRead) {
-            const index = messages.findIndex(m => m.message_id === lastRead);
-            if (index === -1)
-                return undefined;
-            else
-                return index;
-        }
-        else
-            return undefined;
+        let index: number | undefined = undefined;
+        if (lastRead)
+            index = messages.findIndex(m => m.message_id === lastRead);
+
+        return index;
     }
 
     hasHistory() {

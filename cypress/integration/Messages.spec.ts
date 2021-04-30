@@ -64,19 +64,19 @@ describe("Messages", () => {
     });
 
     it("can be received", () => {
-        cy.get(":nth-child(43)").then(() => {
+        cy.get("[data-index=\"42\"]").then(() => {
             mockServer.sendMessage(otherUser, "#general", "hello");
-        }).get(":nth-child(44) > .message-content").should("contain.text", "otheruser: hello");
-        cy.get(":nth-child(44) > .message-time").should("exist");
+        }).get("[data-index=\"43\"] > .message-content").should("contain.text", "otheruser: hello");
+        cy.get("[data-index=\"43\"] > .message-time").should("exist");
     });
 
     it("can be received through history", () => {
-        cy.get(":nth-child(39) > .message-content").should("contain.text", "test: testing");
-        cy.get(":nth-child(39) > .message-time").should("be.visible");
+        cy.get("[data-index=\"38\"] > .message-content").should("contain.text", "test: testing");
+        cy.get("[data-index=\"38\"] > .message-time").should("be.visible");
         cy.get(".message-list").scrollTo("top");
-        cy.get(":nth-child(2) > .message-content").should("be.visible");
-        cy.get(":nth-child(2) > .message-content").should("contain.text", "otheruser: hello");
-        cy.get(":nth-child(8) > .message-time").should("not.exist");
+        cy.get("[data-index=\"1\"] > .message-content").should("be.visible");
+        cy.get("[data-index=\"1\"] > .message-content").should("contain.text", "otheruser: hello");
+        cy.get("[data-index=\"7\"] > .message-time").should("not.exist");
     });
 
     it("contain clickable links", () => {
