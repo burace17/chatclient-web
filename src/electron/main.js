@@ -25,12 +25,10 @@ function createWindow() {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
 
-    // For some reason .setWindowOpenHandler does not work here?
-    mainWindow.webContents.on("new-window", (e, targetUrlString) => {
-        e.preventDefault();
-        const targetUrl = new URL(targetUrlString);
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        const targetUrl = new URL(url);
         if (targetUrl.protocol === "http:" || targetUrl.protocol === "https:")
-            shell.openExternal(targetUrlString);
+            shell.openExternal(url);
     });
 
     mainWindow.maximize();
