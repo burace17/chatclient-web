@@ -449,10 +449,9 @@ class App extends React.Component<Properties, State> {
                         isHidden={this.state.hideServerTree} onServerRemoved={this.onServerRemoved} />
                     <div className="chat-box">
                         <MessageList key={this.state.currentChannelName} 
-                            messages={this.state.currentChannelMessages} messagesOnServer={this.state.currentChannelMessagesOnServer} 
+                            messages={this.state.currentChannelMessages}
                             lastViewedMessage={this.state.currentChannelLastReadMessage} 
                             onBottomStateChanged={this.onBottomStateChanged} 
-                            windowHasFocus={this.state.windowHasFocus} 
                             ref={this.messageListRef} />
                         <EntryBox onSendMessage={this.onSendMessage} canSendMessage={this.state.canSendMessage} 
                             ref={this.entryBoxRef} />

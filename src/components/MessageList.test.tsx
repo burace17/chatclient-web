@@ -17,7 +17,8 @@ test("Message list grouping", () => {
         {message_id: 5, time: now + 10, content: "but make sure we group this", nickname: "testuser", attachments: []}
     ];
 
-    render(<MessageList messages={messages} />);
+    render(<MessageList messages={messages} lastViewedMessage={4} onBottomStateChanged={(atBottom) => {}} 
+        initialMessageCount={messages.length} />);
 
     const getDateString = (time: number) => {
         const targetDate = new Date(time * 1000);
@@ -41,7 +42,7 @@ test("Message list grouping", () => {
     };
 
     // we expect to find this date in the DOM
-    expect(screen.queryByText(getDateString(messages[0].time))).toBeInTheDocument();
+    expect(screen.getByText(getDateString(messages[0].time))).toBeInTheDocument();
 
     // but not these, since they should be grouped
     expect(screen.queryByText(getDateString(messages[1].time))).not.toBeInTheDocument();

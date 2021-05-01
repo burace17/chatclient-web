@@ -10,9 +10,8 @@ import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 
 interface Properties {
     messages: ClientMessage[];
-    messagesOnServer: number;
     lastViewedMessage: number | undefined;
-    windowHasFocus: boolean;
+    initialMessageCount?: number;
     onBottomStateChanged: (atBottom: boolean) => void;
 }
 
@@ -70,6 +69,7 @@ class MessageList extends React.Component<Properties, State> {
                 itemContent={index => msgs[index]} 
                 className="message-list scrollbar"
                 initialTopMostItemIndex={this.props.lastViewedMessage ?? this.props.messages.length - 1}
+                initialItemCount={this.props.initialMessageCount}
                 atBottomStateChange={this.props.onBottomStateChanged}
                 ref={this.listRef}/>
         );
