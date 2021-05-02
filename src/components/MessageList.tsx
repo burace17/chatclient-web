@@ -57,13 +57,13 @@ class MessageList extends React.Component<Properties, State> {
     }
 
     componentDidMount() {
-        console.log("mounted, last read: " + this.props.lastViewedMessage);
-        console.log("mount, number of messages: " + this.props.messages?.length);
+        //console.log("mounted, last read: " + this.props.lastViewedMessage);
+        //console.log("mount, number of messages: " + this.props.messages?.length);
     }
 
     render() {
         const msgs = groupMessages(Array.from(this.props.messages), 60);
-        console.log("render, last read: " + this.props.lastViewedMessage);
+        //console.log("render, last read: " + this.props.lastViewedMessage);
         return (
             <Virtuoso totalCount={msgs.length} 
                 itemContent={index => msgs[index]} 

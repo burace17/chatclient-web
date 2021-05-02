@@ -479,7 +479,7 @@ class Client {
     }
 
     notifyNotViewingChannels() {
-        console.log("notifynotviewingchannels");
+        //console.log("notifynotviewingchannels");
         const packet = {
             "cmd": "NOTVIEWING",
         };
