@@ -140,8 +140,11 @@ class App extends React.Component<Properties, State> {
         if (window.credentialManager) {
             // TODO: Make this type safe
             const data = await window.credentialManager.getStoredServers();
+            if (!data)
+                return;
+
             for (const server of data) {
-                const password = await window.credentialManager.getStoredPassword(server.address, server.username);
+                const password = server.password ?? await window.credentialManager.getStoredPassword(server.address, server.username);
                 this.onServerAdded(server.address, server.username, password, false, false);
             }
         }
