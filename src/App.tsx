@@ -125,6 +125,7 @@ class App extends React.Component<Properties, State> {
         await checkForNotificationPermission();
         window.addEventListener("focus", this.onWindowGotFocus);
         window.addEventListener("blur", this.onWindowLostFocus);
+        this.evaluateSidePaneVisibility();
     }
 
     componentWillUnmount() {
@@ -148,6 +149,14 @@ class App extends React.Component<Properties, State> {
                 this.onServerAdded(server.address, server.username, password, false, false);
             }
         }
+    }
+
+    private evaluateSidePaneVisibility = () => {
+        const screenTooSmall = window.innerWidth < 500;
+        this.setState({
+            hideServerTree: screenTooSmall,
+            hideUserList: screenTooSmall
+        });
     }
 
     private writeToCurrentChat = (text: string) => {

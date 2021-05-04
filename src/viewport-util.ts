@@ -37,7 +37,11 @@ function onWindowUpdate(e: Event) {
 
     requestAnimationFrame(() => {
         pendingUpdate = false;
+
+        // i want to remove this but it's needed to keep mobile safari from scrolling the 
+        // wrong element when the keyboard is open
         window.scrollTo(0, 0);
+
         updateVhOffset();
     });
 }
