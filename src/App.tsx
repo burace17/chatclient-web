@@ -98,6 +98,7 @@ class App extends React.Component<Properties, State> {
     private clients: Map<string, Client> = new Map<string, Client>();
     private entryBoxRef: React.RefObject<EntryBox> = React.createRef();
     private messageListRef: React.RefObject<MessageList> = React.createRef();
+    private unhookTouchEvents: () => void = () => {};
     constructor(props: Properties) {
         super(props);
         this.state = {
@@ -126,11 +127,13 @@ class App extends React.Component<Properties, State> {
         window.addEventListener("focus", this.onWindowGotFocus);
         window.addEventListener("blur", this.onWindowLostFocus);
         this.evaluateSidePaneVisibility();
+        this.setupTouchEventListeners();
     }
 
     componentWillUnmount() {
         window.removeEventListener("focus", this.onWindowGotFocus);
         window.removeEventListener("blur", this.onWindowLostFocus);
+        this.unhookTouchEvents();
     }
 
     private focusEntryBox = () => this.entryBoxRef.current?.focus();
@@ -157,6 +160,56 @@ class App extends React.Component<Properties, State> {
             hideServerTree: screenTooSmall,
             hideUserList: screenTooSmall
         });
+    }
+
+    private setupTouchEventListeners = () => {
+        let start: Touch | null = null;
+        let hideServerTree = this.state.hideServerTree;
+        let hideUserList = this.state.hideUserList;
+        const onTouchStart = (e: TouchEvent) => {
+            start = e.changedTouches[0];
+            hideServerTree = this.state.hideServerTree;
+            hideUserList = this.state.hideUserList;
+        };
+
+        const onTouchMove = (e: TouchEvent) => {
+            const end = e.changedTouches[0];
+
+            // don't handle any of these gestures if both the server tree and user list are showing.
+            if (!start || (!hideServerTree && !hideUserList))
+                return;
+
+            const diffX = end.screenX - start.screenX;
+            const diffY = end.screenY - start.screenY;
+            const scrolledRight = diffX > 0;
+            const scrolledEnough = Math.abs(diffX) > 100;
+            const vertical = Math.abs(diffY) > 20;
+
+            if (!scrolledEnough || vertical)
+                return;
+
+            let newHideServerTree = true;
+            let newHideUserList = true;
+            if (hideServerTree && !scrolledRight) {
+                newHideUserList = false;
+            }
+            if (hideUserList && scrolledRight) {
+                newHideServerTree = false;
+                newHideUserList = true;
+            }
+
+            this.setState({
+                hideServerTree: newHideServerTree,
+                hideUserList: newHideUserList
+            });
+        };
+
+        window.addEventListener("touchstart", onTouchStart);
+        window.addEventListener("touchmove", onTouchMove);
+        this.unhookTouchEvents = () => {
+            window.removeEventListener("touchstart", onTouchStart);
+            window.removeEventListener("touchmove", onTouchMove);
+        };
     }
 
     private writeToCurrentChat = (text: string) => {
