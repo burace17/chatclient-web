@@ -67,7 +67,6 @@ interface State {
     currentChannelName: string;
     currentChannelMessages: ClientMessage[]
     currentChannelUsers: User[];
-    currentChannelMessagesOnServer: number;
     currentChannelLastReadMessage: number | undefined;
     hideServerTree: boolean;
     hideUserList: boolean;
@@ -79,17 +78,17 @@ interface State {
 function getNamesAndAddresses(clients: Map<string, Client>): ServerInfo[] {
     return map(clients.entries(), kv => {
         const [addr, client] = kv;
-        const name = client.getServerName();
-        const channels = client.getChannels();
+        const name = client.serverName;
+        const channels = client.channels;
         return {
             address: addr,
-            username: client.getProps().username,
-            password: client.getProps().password,
+            username: client.props.username,
+            password: client.props.password,
             name: name,
             channels: channels,
             isClosed: client.isClosingOrClosed(),
-            quitReason: client.getQuitReason(),
-            quitCode: client.getQuitCode(),
+            quitReason: client.quitReason,
+            quitCode: client.quitCode,
         };
     });
 }
@@ -107,7 +106,6 @@ class App extends React.Component<Properties, State> {
             currentChannelName: "",
             currentChannelMessages: [],
             currentChannelUsers: [],
-            currentChannelMessagesOnServer: 0,
             currentChannelLastReadMessage: undefined,
             hideServerTree: false,
             hideUserList: false,
@@ -237,7 +235,7 @@ class App extends React.Component<Properties, State> {
         const words = text.split(" ");
         if (client && words[0] === "/join" && words.length >= 2) {
             const channel = words[1];
-            if (!client.getChannels().some(c => c.name === channel))
+            if (!client.channels.some(c => c.name === channel))
                 client.joinChannel(channel);
             else
                 this.writeToCurrentChat("You are already in " + channel);
@@ -291,7 +289,6 @@ class App extends React.Component<Properties, State> {
     private onTreeSelectionChanged = (newSelection: ServerSelection) => {
         let messages: ClientMessage[] = [];
         let users: User[] = [];
-        let messagesOnServer = 0;
         let lastReadMessage: number | undefined = undefined;
         const newChannel = newSelection as Channel;
         const client = this.clients.get(newChannel.address);
@@ -307,7 +304,6 @@ class App extends React.Component<Properties, State> {
         if (newChannel.name && client) {
             messages = client.getMessages(newChannel) ?? [];
             users = newChannel.users;
-            messagesOnServer = client.getUnreadMessagesOnServer(newChannel);
             lastReadMessage = client.getLastReadMessage(newChannel);
             document.title = newChannel.name + " - Chat Client";
         }
@@ -331,7 +327,6 @@ class App extends React.Component<Properties, State> {
             currentChannelName: newChannel?.name ?? "",
             currentChannelMessages: messages,
             currentChannelUsers: users,
-            currentChannelMessagesOnServer: messagesOnServer,
             currentChannelLastReadMessage: lastReadMessage,
             canSendMessage: client?.isConnected() ?? false
         }, afterSetState);
@@ -347,7 +342,6 @@ class App extends React.Component<Properties, State> {
             const messages = client.getMessages(currentChannel);
             this.setState({ 
                 currentChannelMessages: messages,
-                currentChannelMessagesOnServer: client.getUnreadMessagesOnServer(currentChannel),
                 currentChannelLastReadMessage: client.getLastReadMessage(currentChannel)
             }, () => this.scrollToEnd());
         }
@@ -355,7 +349,7 @@ class App extends React.Component<Properties, State> {
             this.setState({ serverNames: getNamesAndAddresses(this.clients) });
         }
 
-        if (!client.isBeingViewed(currentChannel) && message && message.user && message.user.username !== client.getProps().username) {
+        if (!client.isBeingViewed(currentChannel) && message && message.user && message.user.username !== client.props.username) {
             showNotification(`${message.user.username} (${channel})`, message.content);
         }
     }
@@ -429,13 +423,12 @@ class App extends React.Component<Properties, State> {
             this.clients.delete(addr);
 
             if (window.credentialManager) {
-                await window.credentialManager.removeServerInfo(addr, client.getProps().username);
+                await window.credentialManager.removeServerInfo(addr, client.props.username);
             }
             if (this.state.selectedTreeItem?.address === addr) {
                 this.setState({
                     currentChannelMessages: [],
                     currentChannelUsers: [],
-                    currentChannelMessagesOnServer: 0,
                     currentChannelLastReadMessage: undefined,
                     canSendMessage: false
                 });
@@ -497,7 +490,7 @@ class App extends React.Component<Properties, State> {
         if (!client)
             return;
 
-        const channels = client.getChannels();
+        const channels = client.channels;
         if (!channel.name && channels.length > 0) {
             this.onTreeSelectionChanged(channels[0]);
         }

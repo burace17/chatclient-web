@@ -75,29 +75,29 @@ function appendAddress(message: any, address: string): Channel {
 
 class Client {
     private ws: WebSocket;
-    private readonly props: ClientProperties;
-    private serverName: string;
-
-    private channels: Channel[] = [];
-
-    private gotHistory = false;
+    readonly props: ClientProperties;
 
     // This stores the messages currently loaded for each channel
     // There may be significantly more on the server which we don't know about
     private channelMessages = new Map<string, ClientMessage[]>();
 
-    // This stores the number of new messages waiting to be read on the server
-    private channelMessagesOnServer = new Map<string, number>();
-
     private lastRead = new Map<string, number | null>();
     private channelsBeingViewed = new Set<string>();
 
     private hasQuit: boolean = false;
-    private quitReason: string | undefined;
-    private quitCode: number | undefined;
     private sendRegistrationFirst: boolean = false;
 
     private pingWords: Set<string> = new Set<string>();
+
+    private gotHistory = false;
+
+
+    quitReason: string | undefined;
+    quitCode: number | undefined;
+
+    serverName: string;
+
+    channels: Channel[] = [];
 
     constructor(props: ClientProperties, shouldRegister: boolean) {
         this.props = props;
@@ -256,7 +256,6 @@ class Client {
         const channel = appendAddress(message.channel, this.props.address);
         this.channels.push(channel);
         this.channelMessages.set(channel.name, []);
-        this.channelMessagesOnServer.set(channel.name, 0);
         this.props.onReceiveChannelInfo(this.props.address, channel);
     };
 
@@ -264,7 +263,6 @@ class Client {
         interface ChannelHistoryEntry {
             last_read_message: number | null;
             messages: ClientMessage[];
-            messages_after: number;
         };
         interface ChannelHistory {
             channelName: string,
@@ -282,7 +280,6 @@ class Client {
                     msg.isPing = this.hasPingWord(msg.content);
                 this.channelMessages.set(channelName, mergedMessages);
                 this.lastRead.set(channelName, entry.last_read_message);
-                this.channelMessagesOnServer.set(channelName, entry.messages_after);
                 console.log(`history: ${channelName} last read message was ${entry.last_read_message}`);
                 this.updateChannelStatus(channelName);
                 //this.props.onMessage(this.props.address, channelName);
@@ -334,74 +331,6 @@ class Client {
         }
     };
 
-    getProps() {
-        return this.props;
-    }
-
-    getServerName() {
-        return this.serverName;
-    }
-
-    getChannels() {
-        return this.channels;
-    }
-
-    getMessages(channel: Channel) {
-        return this.channelMessages.get(channel.name) ?? [];
-    }
-
-    isConnected() {
-        return this.ws.readyState === 1;
-    }
-
-    isClosingOrClosed() {
-        return this.ws.readyState === 2 || this.ws.readyState === 3;
-    }
-
-    getQuitCode() {
-        return this.quitCode;
-    }
-
-    getQuitReason() {
-        return this.quitReason;
-    }
-
-    isBeingViewed(channel: Channel) {
-        return this.channelsBeingViewed.has(channel.name);
-    }
-
-    getUnreadMessagesOnServer(channel: Channel) {
-        return this.channelMessagesOnServer.get(channel.name) ?? 0;
-    }
-
-    getLastReadMessage(channel: Channel) {
-        const messages = this.getMessages(channel);
-        const lastRead = this.lastRead.get(channel.name) ?? null;
-        let index: number | undefined = undefined;
-        if (lastRead)
-            index = messages.findIndex(m => m.message_id === lastRead);
-
-        return index;
-    }
-
-    getLastReadMessageId(channel: Channel) {
-        return this.lastRead.get(channel.name) ?? null;
-    }
-
-    hasHistory() {
-        return this.gotHistory;
-    }
-
-    getLastMessageId(channel: Channel) {
-        const messages = this.getMessages(channel);
-        if (messages.length > 0) {
-            //return messages[messages.length - 1].message_id;
-            return Math.max(...messages.map(m => m.message_id));
-        }
-        else
-            return null;
-    };
-
     private hasUnreadMessages = (channel: Channel) => {
         const lastReadMessage = this.lastRead.get(channel.name) ?? null;
         const lastMessageId = this.getLastMessageId(channel);
@@ -439,6 +368,45 @@ class Client {
 
         return false;
     }
+
+
+    getMessages(channel: Channel) {
+        return this.channelMessages.get(channel.name) ?? [];
+    }
+
+    isConnected() {
+        return this.ws.readyState === 1;
+    }
+
+    isClosingOrClosed() {
+        return this.ws.readyState === 2 || this.ws.readyState === 3;
+    }
+
+    isBeingViewed(channel: Channel) {
+        return this.channelsBeingViewed.has(channel.name);
+    }
+
+    getLastReadMessage(channel: Channel) {
+        const messages = this.getMessages(channel);
+        const lastRead = this.lastRead.get(channel.name) ?? null;
+        let index: number | undefined = undefined;
+        if (lastRead)
+            index = messages.findIndex(m => m.message_id === lastRead);
+
+        return index;
+    }
+
+    getLastReadMessageId(channel: Channel) {
+        return this.lastRead.get(channel.name) ?? null;
+    }
+
+    getLastMessageId(channel: Channel) {
+        const messages = this.getMessages(channel);
+        if (messages.length > 0)
+            return Math.max(...messages.map(m => m.message_id));
+        else
+            return null;
+    };
 
     sendMessage(channel: string, text: string) {
         if (text.length === 0)
