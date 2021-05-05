@@ -11,6 +11,7 @@ import "./Message.css";
 interface Properties {
     message: ClientMessage;
     showTime: boolean;
+    index: number;
 }
 
 function formatTime(time: number) {
@@ -79,7 +80,7 @@ export default class Message extends React.Component<Properties> {
         const onImageLoad = () => this.forceUpdate();
         if (msg.nickname) {
             return (
-                <li key={msg.message_id} className="message">
+                <li key={msg.message_id} data-index={this.props.index} className="message">
                     {this.props.showTime && formatTime(msg.time)}
                     <div className={className}>
                         <span className="nickname">{msg.nickname}</span>: {formatMessage(this.urlMatcher, msg.content)}
@@ -92,7 +93,7 @@ export default class Message extends React.Component<Properties> {
         }
         else { // this case is for information messages (not from other users)
             return (
-                <li key={msg.message_id}>{msg.content}</li>
+                <li key={msg.message_id} data-index={this.props.index}>{msg.content}</li>
             );
         }
     }

@@ -23,7 +23,6 @@
         "react-dom": "^17.0.1",
         "react-modal": "^3.12.1",
         "react-scripts": "^4.0.1",
-        "react-virtuoso": "^1.7.1",
         "string-replace-to-array": "burace17/string-replace-to-array",
         "typescript": "^4.2.2",
         "url-regex-safe": "^2.0.2",

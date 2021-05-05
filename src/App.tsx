@@ -255,7 +255,7 @@ class App extends React.Component<Properties, State> {
             return;
 
         const client = this.clients.get(channel.address);
-        if (client && channel.name && client.getLastReadMessage(channel) === client.getLastMessageId(channel))
+        if (client && channel.name && client.getLastReadMessageId(channel) === client.getLastMessageId(channel))
             client.notifyViewingChannel(channel.name);
         // In the future, we should check that the last message is actually in view.
         // Right now it always should be since we are still scrolling the page even when the document is hidden.

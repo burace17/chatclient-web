@@ -70,27 +70,27 @@ describe("Messages", () => {
     it("can be received", () => {
         cy.get(`${getIndex(42)}`).then(() => {
             mockServer.sendMessage(otherUser, "#general", "hello");
-        }).get(`${getIndex(43)} > .message > .message-content`).should("contain.text", "otheruser: hello");
-        cy.get(`${getIndex(43)} > .message > .message-time`).should("exist");
+        }).get(`${getIndex(43)} > .message-content`).should("contain.text", "otheruser: hello");
+        cy.get(`${getIndex(43)} > .message-time`).should("exist");
     });
 
     it("can be received through history", () => {
-        cy.get(`${getIndex(41)} > .message  > .message-content`).should("contain.text", "test: mailto:test@test.com");
-        cy.get(`${getIndex(41)} > .message  > .message-time`).should("be.visible");
+        cy.get(`${getIndex(41)} > .message-content`).should("contain.text", "test: mailto:test@test.com");
+        cy.get(`${getIndex(41)} > .message-time`).should("be.visible");
         cy.get(".message-list").scrollTo("top");
-        cy.get(`${getIndex(1)} > .message  > .message-content`).should("be.visible");
-        cy.get(`${getIndex(1)} > .message  > .message-content`).should("contain.text", "otheruser: hello");
-        cy.get(`${getIndex(7)} > .message  > .message-time`).should("not.exist");
+        cy.get(`${getIndex(1)} > .message-content`).should("be.visible");
+        cy.get(`${getIndex(1)} > .message-content`).should("contain.text", "otheruser: hello");
+        cy.get(`${getIndex(7)} > .message-time`).should("not.exist");
     });
 
     it("contain clickable links", () => {
-        cy.get(`${getIndex(42)} > .message  > .message-content > a`).should("exist");
+        cy.get(`${getIndex(42)} > .message-content > a`).should("exist");
     });
 
     it("can be sent", () => {
         cy.get(".entrybox").type("hello world{enter}");
-        cy.get(`${getIndex(43)} > .message  > .message-content`).should("contain.text", "testuser: hello world");
-        cy.get(`${getIndex(43)} > .message  > .message-time`).should("exist");
+        cy.get(`${getIndex(43)} > .message-content`).should("contain.text", "testuser: hello world");
+        cy.get(`${getIndex(43)} > .message-time`).should("exist");
     });
 
     it("update the server tree", () => {
@@ -139,16 +139,16 @@ describe("Messages", () => {
             .click()
             .should("not.have.class", "channel-button-ping")
             .should("not.have.class", "channel-button-unread");
-        cy.get(`${getIndex(1)} > .message > .message-content`).should("have.class", "message-content-pinged");
+        cy.get(`${getIndex(1)} > .message-content`).should("have.class", "message-content-pinged");
     });
 
     it("containing URLs pointing to images show the image", () => {
-        cy.get(`${getIndex(42)} > .message > [data-cy=message-attachments] > li > a > .image`).should("exist").then(() => {
+        cy.get(`${getIndex(42)} > [data-cy=message-attachments] > li > a > .image`).should("exist").then(() => {
             const url = "https://0.0.0.0/image.jpg";
             const message_id = mockServer.sendMessage(otherUser, "#general", `blah ${url}`);
             mockServer.fakeAddAttachment("#general", message_id, url, "image/jpeg");
         });
-        cy.get(`${getIndex(43)} > .message > [data-cy=message-attachments] > li > a > .image`).should("exist");
+        cy.get(`${getIndex(43)} > [data-cy=message-attachments] > li > a > .image`).should("exist");
     });
 
     /*

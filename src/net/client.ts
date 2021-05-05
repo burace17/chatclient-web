@@ -384,6 +384,10 @@ class Client {
         return index;
     }
 
+    getLastReadMessageId(channel: Channel) {
+        return this.lastRead.get(channel.name) ?? null;
+    }
+
     hasHistory() {
         return this.gotHistory;
     }
